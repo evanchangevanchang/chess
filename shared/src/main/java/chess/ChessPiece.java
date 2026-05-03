@@ -172,31 +172,69 @@ public class ChessPiece {
         int start_r = myPosition.getRow();
         int start_c = myPosition.getColumn();
 
-        for (int[] direction : KING_DIRS) {
-            int current_r = start_r + direction[0];
+        // ternary, positive direction if white
+        int direction_sign = (pieceColor == ChessGame.TeamColor.WHITE) ? 1 : -1;
+
+        // forward
+        for (int[] direction : PAWN_F_DIRS) {
+            // im so proud of this line
+//            if (!((direction[0] == 2) && (start_r == (4 - 2 * direction_sign)))) break;
+            int current_r = start_r + direction_sign * direction[0];
+            int current_c = start_c;
+
+            if ((current_r >= 1 && current_r <= 8)) {
+                ChessPosition pos = new ChessPosition(current_r, current_c);
+                ChessPiece check_square = board.getPiece(pos);
+
+                // handle promotion
+                if (check_square == null) {
+                    if (((pieceColor == ChessGame.TeamColor.WHITE) && (current_r == 8)) ||
+                            ((pieceColor == ChessGame.TeamColor.BLACK) && (current_r == 1))) {
+                        moves.add(new ChessMove(myPosition, pos, PieceType.BISHOP));
+                        moves.add(new ChessMove(myPosition, pos, PieceType.ROOK));
+                        moves.add(new ChessMove(myPosition, pos, PieceType.QUEEN));
+                        moves.add(new ChessMove(myPosition, pos, PieceType.KNIGHT));
+                    } else moves.add(new ChessMove(myPosition, pos, null));
+                }
+
+            }
+        }
+        // diagonal attacks
+        for (int[] direction : PAWN_D_DIRS) {
+            int current_r = start_r + direction_sign;
             int current_c = start_c + direction[1];
 
             if ((current_r >= 1 && current_r <= 8) && (current_c >= 1 && current_c <= 8)) {
                 ChessPosition pos = new ChessPosition(current_r, current_c);
                 ChessPiece check_square = board.getPiece(pos);
 
-                if (check_square == null) {
-                    moves.add(new ChessMove(myPosition, pos, null));
-                    // add this position to valid
-                } else {
+                if (check_square != null) {
                     // landed on a piece
                     if (check_square.pieceColor != this.pieceColor) {
-                        moves.add(new ChessMove(myPosition, pos, null));
+                        if (((pieceColor == ChessGame.TeamColor.WHITE) && (current_r == 8)) ||
+                                ((pieceColor == ChessGame.TeamColor.BLACK) && (current_r == 1))) {
+                            moves.add(new ChessMove(myPosition, pos, PieceType.BISHOP));
+                            moves.add(new ChessMove(myPosition, pos, PieceType.ROOK));
+                            moves.add(new ChessMove(myPosition, pos, PieceType.QUEEN));
+                            moves.add(new ChessMove(myPosition, pos, PieceType.KNIGHT));
+                        }
+                        else moves.add(new ChessMove(myPosition, pos, null));
                     }
-                    // check color of the piece,
-                    // if opposite, spot is valid, stop
-                    // if same, spot is not valid, stop (breaks either way
                 }
             }
         }
 
+
         return moves;
     }
+    private static final int[][] PAWN_F_DIRS = {
+            {1,0}, {2,0}
+    };
+    // little redundant but i kept it this way bc im ocd
+    private static final int[][] PAWN_D_DIRS = {
+            {1,1}, {1,-1}
+    };
+
     private List<ChessMove> kingMoves (ChessBoard board, ChessPosition myPosition) {
         List<ChessMove> moves = new ArrayList<>();
         int start_r = myPosition.getRow();
