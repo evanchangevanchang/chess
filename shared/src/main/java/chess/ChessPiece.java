@@ -77,6 +77,10 @@ public class ChessPiece {
                 return lineMoves(board, myPosition, QUEEN_DIRS);
             case KING:
                 return kingMoves(board, myPosition);
+            case KNIGHT:
+                return knightMoves(board, myPosition);
+            case PAWN:
+                return pawnMoves(board, myPosition);
 
             // return List.of(new ChessMove(new ChessPosition(5,4), new ChessPosition(1, 8), null));
         }
@@ -130,11 +134,69 @@ public class ChessPiece {
             {1,0}, {-1,0}, {0,1}, {0,-1}
     };
 
-//    private List<ChessMove> knightMoves (ChessBoard board, ChessPosition myPosition) {
-//
-//    };
+    //probably can use the same Moves code as king but keeping separate just in case
+    private List<ChessMove> knightMoves (ChessBoard board, ChessPosition myPosition) {
+        List<ChessMove> moves = new ArrayList<>();
+        int start_r = myPosition.getRow();
+        int start_c = myPosition.getColumn();
 
-//    private List<ChessMove> pawnMoves (ChessBoard board, ChessPosition myPosition,
+        for (int[] direction : KNIGHT_DIRS) {
+            int current_r = start_r + direction[0];
+            int current_c = start_c + direction[1];
+
+            if ((current_r >= 1 && current_r <= 8) && (current_c >= 1 && current_c <= 8)) {
+                ChessPosition pos = new ChessPosition(current_r, current_c);
+                ChessPiece check_square = board.getPiece(pos);
+
+                if (check_square == null) {
+                    moves.add(new ChessMove(myPosition, pos, null));
+                    // add this position to valid
+                } else {
+                    // landed on a piece
+                    if (check_square.pieceColor != this.pieceColor) {
+                        moves.add(new ChessMove(myPosition, pos, null));
+                    }
+                }
+            }
+        }
+
+        return moves;
+    };
+
+    private static final int[][] KNIGHT_DIRS = {
+            {1,2}, {1,-2}, {-1,2}, {-1,-2},
+            {2,1}, {2,-1}, {-2,1}, {-2,-1}
+    };
+    private List<ChessMove> pawnMoves (ChessBoard board, ChessPosition myPosition) {
+        List<ChessMove> moves = new ArrayList<>();
+        int start_r = myPosition.getRow();
+        int start_c = myPosition.getColumn();
+
+        for (int[] direction : KING_DIRS) {
+            int current_r = start_r + direction[0];
+            int current_c = start_c + direction[1];
+
+            if ((current_r >= 1 && current_r <= 8) && (current_c >= 1 && current_c <= 8)) {
+                ChessPosition pos = new ChessPosition(current_r, current_c);
+                ChessPiece check_square = board.getPiece(pos);
+
+                if (check_square == null) {
+                    moves.add(new ChessMove(myPosition, pos, null));
+                    // add this position to valid
+                } else {
+                    // landed on a piece
+                    if (check_square.pieceColor != this.pieceColor) {
+                        moves.add(new ChessMove(myPosition, pos, null));
+                    }
+                    // check color of the piece,
+                    // if opposite, spot is valid, stop
+                    // if same, spot is not valid, stop (breaks either way
+                }
+            }
+        }
+
+        return moves;
+    }
     private List<ChessMove> kingMoves (ChessBoard board, ChessPosition myPosition) {
         List<ChessMove> moves = new ArrayList<>();
         int start_r = myPosition.getRow();
