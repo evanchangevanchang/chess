@@ -68,16 +68,22 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         ChessPiece piece = board.getPiece(myPosition);
-        if(piece.getPieceType() == PieceType.BISHOP) {
-            // instead of returning this, add logic based on moves functions
-            return lineMoves(board, myPosition, BISHOP_DIRS);
+        switch(piece.getPieceType()) {
+            case BISHOP:
+                return lineMoves(board, myPosition, BISHOP_DIRS);
+            case ROOK:
+                return lineMoves(board, myPosition, ROOK_DIRS);
+            case QUEEN:
+                return lineMoves(board, myPosition, QUEEN_DIRS);
+            case KING:
+                return kingMoves(board, myPosition);
+
             // return List.of(new ChessMove(new ChessPosition(5,4), new ChessPosition(1, 8), null));
         }
         return List.of();
     }
 
     /* finds possible moves in a straight line, for bishop, rook, and queen (combines both)
-
      */
     private List<ChessMove> lineMoves (ChessBoard board, ChessPosition myPosition, int[][] directions) {
         List<ChessMove> moves = new ArrayList<>();
@@ -113,17 +119,12 @@ public class ChessPiece {
 
         return moves;
     }
-    // diagonal
     private static final int[][] BISHOP_DIRS = {
             {1,1}, {1,-1}, {-1,1}, {-1,-1}
     };
-
-    // straight
     private static final int[][] ROOK_DIRS = {
             {1,0}, {-1,0}, {0,1}, {0,-1}
     };
-
-    // both
     private static final int[][] QUEEN_DIRS = {
             {1,1}, {1,-1}, {-1,1}, {-1,-1},
             {1,0}, {-1,0}, {0,1}, {0,-1}
@@ -134,5 +135,39 @@ public class ChessPiece {
 //    };
 
 //    private List<ChessMove> pawnMoves (ChessBoard board, ChessPosition myPosition,
+    private List<ChessMove> kingMoves (ChessBoard board, ChessPosition myPosition) {
+        List<ChessMove> moves = new ArrayList<>();
+        int start_r = myPosition.getRow();
+        int start_c = myPosition.getColumn();
+
+        for (int[] direction : KING_DIRS) {
+            int current_r = start_r + direction[0];
+            int current_c = start_c + direction[1];
+
+            if ((current_r >= 1 && current_r <= 8) && (current_c >= 1 && current_c <= 8)) {
+                ChessPosition pos = new ChessPosition(current_r, current_c);
+                ChessPiece check_square = board.getPiece(pos);
+
+                if (check_square == null) {
+                    moves.add(new ChessMove(myPosition, pos, null));
+                    // add this position to valid
+                } else {
+                    // landed on a piece
+                    if (check_square.pieceColor != this.pieceColor) {
+                        moves.add(new ChessMove(myPosition, pos, null));
+                    }
+                    // check color of the piece,
+                    // if opposite, spot is valid, stop
+                    // if same, spot is not valid, stop (breaks either way
+                }
+            }
+        }
+
+        return moves;
+    }
+    private static final int[][] KING_DIRS = {
+            {1,1}, {1,-1}, {-1,1}, {-1,-1},
+            {1,0}, {-1,0}, {0,1}, {0,-1}
+    };
 }
 
