@@ -68,21 +68,14 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         ChessPiece piece = board.getPiece(myPosition);
-        switch(piece.getPieceType()) {
-            case BISHOP:
-                return lineMoves(board, myPosition, BISHOP_DIRS);
-            case ROOK:
-                return lineMoves(board, myPosition, ROOK_DIRS);
-            case QUEEN:
-                return lineMoves(board, myPosition, QUEEN_DIRS);
-            case KING:
-                return kingMoves(board, myPosition);
-            case KNIGHT:
-                return knightMoves(board, myPosition);
-            case PAWN:
-                return pawnMoves(board, myPosition);
-        }
-        return List.of();
+        return switch (piece.getPieceType()) {
+            case BISHOP -> lineMoves(board, myPosition, BISHOP_DIRS);
+            case ROOK -> lineMoves(board, myPosition, ROOK_DIRS);
+            case QUEEN -> lineMoves(board, myPosition, QUEEN_DIRS);
+            case KING -> kingMoves(board, myPosition);
+            case KNIGHT -> knightMoves(board, myPosition);
+            case PAWN -> pawnMoves(board, myPosition);
+        };
     }
 
     /* finds possible moves in a straight line, for bishop, rook, and queen (combines both)
@@ -159,7 +152,7 @@ public class ChessPiece {
         }
 
         return moves;
-    };
+    }
 
     private static final int[][] KNIGHT_DIRS = {
             {1,2}, {1,-2}, {-1,2}, {-1,-2},
@@ -179,16 +172,15 @@ public class ChessPiece {
             // im so proud of this line
             if ((direction[0] == 2) && (start_r != (4.5 - 2.5 * direction_sign))) continue;
             int current_r = start_r + direction_sign * direction[0];
-            int current_c = start_c;
-
+            // no current_c needed
             if ((current_r >= 1 && current_r <= 8)) {
-                ChessPosition pos = new ChessPosition(current_r, current_c);
+                ChessPosition pos = new ChessPosition(current_r, start_c);
                 ChessPiece check_square = board.getPiece(pos);
 
                 // handle promotion
                 if (check_square == null) {
                     // break if moving 2 but blocked
-                    if ((direction[0] == 2) && (board.getPiece(new ChessPosition(current_r - direction_sign, current_c)) != null)) break;
+                    if ((direction[0] == 2) && (board.getPiece(new ChessPosition(current_r - direction_sign, start_c)) != null)) break;
                     if (((pieceColor == ChessGame.TeamColor.WHITE) && (current_r == 8)) ||
                             ((pieceColor == ChessGame.TeamColor.BLACK) && (current_r == 1))) {
                         moves.add(new ChessMove(myPosition, pos, PieceType.BISHOP));
