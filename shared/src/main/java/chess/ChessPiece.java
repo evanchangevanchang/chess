@@ -167,6 +167,7 @@ public class ChessPiece {
             {1,2}, {1,-2}, {-1,2}, {-1,-2},
             {2,1}, {2,-1}, {-2,1}, {-2,-1}
     };
+
     private List<ChessMove> pawnMoves (ChessBoard board, ChessPosition myPosition) {
         List<ChessMove> moves = new ArrayList<>();
         int start_r = myPosition.getRow();
@@ -178,7 +179,7 @@ public class ChessPiece {
         // forward
         for (int[] direction : PAWN_F_DIRS) {
             // im so proud of this line
-//            if (!((direction[0] == 2) && (start_r == (4 - 2 * direction_sign)))) break;
+            if ((direction[0] == 2) && (start_r != (4.5 - 2.5 * direction_sign))) continue;
             int current_r = start_r + direction_sign * direction[0];
             int current_c = start_c;
 
@@ -188,13 +189,18 @@ public class ChessPiece {
 
                 // handle promotion
                 if (check_square == null) {
+                    // break if moving 2 but blocked
+                    if ((direction[0] == 2) && (board.getPiece(new ChessPosition(current_r - direction_sign, current_c)) != null)) break;
                     if (((pieceColor == ChessGame.TeamColor.WHITE) && (current_r == 8)) ||
                             ((pieceColor == ChessGame.TeamColor.BLACK) && (current_r == 1))) {
                         moves.add(new ChessMove(myPosition, pos, PieceType.BISHOP));
                         moves.add(new ChessMove(myPosition, pos, PieceType.ROOK));
                         moves.add(new ChessMove(myPosition, pos, PieceType.QUEEN));
                         moves.add(new ChessMove(myPosition, pos, PieceType.KNIGHT));
-                    } else moves.add(new ChessMove(myPosition, pos, null));
+                    } else {
+
+                        moves.add(new ChessMove(myPosition, pos, null));
+                    }
                 }
 
             }
