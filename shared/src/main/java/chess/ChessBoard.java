@@ -42,9 +42,56 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-
+        int i = 0;
+        for (ChessPiece piece : PIECES) {
+            this.addPiece(new ChessPosition(POSITIONS[i][0], POSITIONS[i][1]), piece);
+            i++;
+        }
 
     }
+    private static final ChessPiece[] PIECES = {
+            new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.ROOK),
+            new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KNIGHT),
+            new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.BISHOP),
+            new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.QUEEN),
+            new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KING),
+            new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.BISHOP),
+            new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KNIGHT),
+            new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.ROOK),
+
+            new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN),
+            new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN),
+            new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN),
+            new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN),
+            new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN),
+            new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN),
+            new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN),
+            new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN),
+
+            new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN),
+            new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN),
+            new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN),
+            new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN),
+            new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN),
+            new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN),
+            new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN),
+            new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN),
+
+            new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.ROOK),
+            new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KNIGHT),
+            new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.BISHOP),
+            new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.QUEEN),
+            new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KING),
+            new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.BISHOP),
+            new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KNIGHT),
+            new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.ROOK)
+    };
+    private static final int[][] POSITIONS = {
+            {1,1}, {1,2}, {1,3}, {1,4}, {1,5}, {1,6}, {1,7}, {1,8},
+            {2,1}, {2,2}, {2,3}, {2,4}, {2,5}, {2,6}, {2,7}, {2,8},
+            {7,1}, {7,2}, {7,3}, {7,4}, {7,5}, {7,6}, {7,7}, {7,8},
+            {8,1}, {8,2}, {8,3}, {8,4}, {8,5}, {8,6}, {8,7}, {8,8}
+    };
 
     @Override
     public boolean equals(Object o) {

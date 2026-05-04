@@ -81,8 +81,6 @@ public class ChessPiece {
                 return knightMoves(board, myPosition);
             case PAWN:
                 return pawnMoves(board, myPosition);
-
-            // return List.of(new ChessMove(new ChessPosition(5,4), new ChessPosition(1, 8), null));
         }
         return List.of();
     }
