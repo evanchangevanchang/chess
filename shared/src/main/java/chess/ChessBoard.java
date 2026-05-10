@@ -27,6 +27,32 @@ public class ChessBoard {
     }
 
     /**
+     * Move a chess piece on the chessboard
+     *
+     * @param move     move to execute
+     * @return 0 if successful
+     */
+//    public int movePiece(ChessMove move) {
+//        ChessPosition startPosition = move.getStartPosition();
+//        ChessPosition endPosition = move.getEndPosition();
+//        ChessPiece.PieceType promotionPiece = move.getPromotionPiece();
+//        if (this.getPiece(startPosition) == null || this.getPiece(endPosition) != null) return 1;
+//
+//        // copy piece from start pos to end pos
+//        this.addPiece(endPosition, squares[startPosition.getRow() - 1][startPosition.getColumn() - 1]);
+//
+//        // change piece type if necessary
+//        if (promotionPiece != null) {
+//            squares[endPosition.getRow() - 1][endPosition.getColumn() - 1].setPieceType(promotionPiece);
+//        }
+//
+//        // remove old piece
+//        squares[startPosition.getRow() - 1][startPosition.getColumn() - 1] = null;
+//
+//        return 0;
+//    }
+
+    /**
      * Gets a chess piece on the chessboard
      *
      * @param position The position to get the piece from
