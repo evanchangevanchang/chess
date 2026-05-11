@@ -71,8 +71,20 @@ public class ChessGame {
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         if (board.getPiece(startPosition) == null) return null;
         Collection<ChessMove> moves = board.getPiece(startPosition).pieceMoves(board, startPosition);
+        Collection<ChessMove> validMoves = new ArrayList<>();
+        for (ChessMove move : moves) {
+            ChessBoard clone = new ChessBoard(board);
+            ChessBoard save = board;
+            board = clone;
+            board.addPiece(move.getEndPosition(), board.getPiece(move.getStartPosition()));
+            board.addPiece(move.getStartPosition(), null);
+            if (!isInCheck(current_turn)) {
+                validMoves.add(move);
+            }
 
-        return moves;
+            board = save;
+        }
+        return validMoves;
 
     }
 
@@ -94,7 +106,6 @@ public class ChessGame {
             throw new InvalidMoveException();
         }
 
-        // copy piece from start pos to end pos
 
         // change piece type if necessary
         if (promotionPiece != null) {
@@ -156,7 +167,12 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        if (teamColor != current_turn) {
+            if (isInCheck(teamColor)) {
+
+            }
+        }
+        return false;
     }
 
     /**

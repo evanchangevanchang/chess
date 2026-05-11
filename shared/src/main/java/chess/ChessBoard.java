@@ -9,12 +9,25 @@ import java.util.Objects;
  * Note: You can add to this class, but you may not alter
  * signature of the existing methods.
  */
-public class ChessBoard {
+public class ChessBoard  {
 
     ChessPiece[][] squares = new ChessPiece[8][8];
     public ChessBoard() {
         
     }
+
+    public ChessBoard(ChessBoard copy) {
+        this.squares = new ChessPiece[8][8];
+        for(int i = 0; i < 8; i++) {
+            for(int j = 0; j < 8; j++) {
+                ChessPiece piece = copy.squares[i][j];
+                if (piece != null) {
+                    this.squares[i][j] = new ChessPiece(piece.getTeamColor(), piece.getPieceType());
+                }
+            }
+        }
+    }
+
 
     /**
      * Adds a chess piece to the chessboard
@@ -25,32 +38,6 @@ public class ChessBoard {
     public void addPiece(ChessPosition position, ChessPiece piece) {
         squares[position.getRow() - 1][position.getColumn() - 1] = piece;
     }
-
-    /**
-     * Move a chess piece on the chessboard
-     *
-     * @param move     move to execute
-     * @return 0 if successful
-     */
-//    public int movePiece(ChessMove move) {
-//        ChessPosition startPosition = move.getStartPosition();
-//        ChessPosition endPosition = move.getEndPosition();
-//        ChessPiece.PieceType promotionPiece = move.getPromotionPiece();
-//        if (this.getPiece(startPosition) == null || this.getPiece(endPosition) != null) return 1;
-//
-//        // copy piece from start pos to end pos
-//        this.addPiece(endPosition, squares[startPosition.getRow() - 1][startPosition.getColumn() - 1]);
-//
-//        // change piece type if necessary
-//        if (promotionPiece != null) {
-//            squares[endPosition.getRow() - 1][endPosition.getColumn() - 1].setPieceType(promotionPiece);
-//        }
-//
-//        // remove old piece
-//        squares[startPosition.getRow() - 1][startPosition.getColumn() - 1] = null;
-//
-//        return 0;
-//    }
 
     /**
      * Gets a chess piece on the chessboard
