@@ -77,8 +77,12 @@ public class ChessGame {
             ChessBoard save = board;
             board = clone;
             board.addPiece(move.getEndPosition(), board.getPiece(move.getStartPosition()));
+
+            ChessGame.TeamColor movingColor = board.getPiece(startPosition).getTeamColor();
+
             board.addPiece(move.getStartPosition(), null);
-            if (!isInCheck(current_turn)) {
+
+            if (!isInCheck(movingColor)) {
                 validMoves.add(move);
             }
 
@@ -144,7 +148,9 @@ public class ChessGame {
                 ChessPosition current_position = new ChessPosition(row, col);
                 ChessPiece current_piece = board.getPiece(current_position);
                 if (current_piece != null && current_piece.getTeamColor() != teamColor) {
-                    return kingCheck(current_piece, current_position, king_position);
+                    if (kingCheck(current_piece, current_position, king_position)) {
+                        return true;
+                    }
                 }
             }
         }
