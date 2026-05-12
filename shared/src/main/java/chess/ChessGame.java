@@ -17,10 +17,25 @@ public class ChessGame {
     private TeamColor current_turn;
     private ChessBoard board;
 
+    // castling cannot happen if any of the pieces involved have moved
+    private boolean whiteKingMoved;
+    private boolean blackKingMoved;
+
+    private boolean whiteLeftRookMoved;
+    private boolean whiteRightRookMoved;
+
+    private boolean blackLeftRookMoved;
+    private boolean blackRightRookMoved;
+
     public ChessGame() {
         this.board = new ChessBoard();
         this.board.resetBoard();
         this.current_turn = TeamColor.WHITE;
+        // all start false
+        this.whiteKingMoved = this.blackKingMoved =
+                this.whiteLeftRookMoved = this.whiteRightRookMoved =
+                        this.blackLeftRookMoved = this.blackRightRookMoved = false;
+
     }
 
     /**
@@ -109,6 +124,7 @@ public class ChessGame {
                 board.getPiece(startPosition).getTeamColor() != current_turn) {
             throw new InvalidMoveException();
         }
+
 
 
         // change piece type if necessary
