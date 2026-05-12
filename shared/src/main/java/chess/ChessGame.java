@@ -194,52 +194,14 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-
-            if (isInCheck(teamColor)) {
-                for (int i = 1; i < 9; i++) {
-                    for (int j = 1; j<9;j++) {
-                        // check all teamColor pieces for moves that get them out of check, if none, checkmate
-                        ChessPosition currentPos = new ChessPosition(i, j);
-                        ChessPiece currentPiece = board.getPiece(currentPos);
-                        if (currentPiece != null && currentPiece.getTeamColor() == teamColor) {
-                            Collection<ChessMove> moves = validMoves(currentPos);
-                            if (moves == null) continue;
-
-                            for (ChessMove move : moves) {
-
-                                ChessBoard clone = new ChessBoard(board);
-                                ChessBoard save = board;
-                                board = clone;
-                                board.addPiece(move.getEndPosition(), board.getPiece(move.getStartPosition()));
-
-                                board.addPiece(move.getStartPosition(), null);
-
-                                if (!isInCheck(teamColor)) {
-                                    board = save;
-                                    return false;
-                                }
-
-                                board = save;
-                            }
-
-                        }
-                    }
-                }
-                return true;
-            }
-
+        if (isInCheck(teamColor)) {
+            return noValidMoves(teamColor);
+        }
         return false;
     }
 
-    /**
-     * Determines if the given team is in stalemate, which here is defined as having
-     * no valid moves while not in check.
-     *
-     * @param teamColor which team to check for stalemate
-     * @return True if the specified team is in stalemate, otherwise false
-     */
-    public boolean isInStalemate(TeamColor teamColor) {
-        if (!isInCheck(teamColor)) {
+
+    private boolean noValidMoves(TeamColor teamColor) {
             for (int i = 1; i < 9; i++) {
                 for (int j = 1; j<9;j++) {
                     // check all teamColor pieces for moves that get them out of check, if none, checkmate
@@ -271,7 +233,17 @@ public class ChessGame {
             }
             return true;
         }
-
+    /**
+     * Determines if the given team is in stalemate, which here is defined as having
+     * no valid moves while not in check.
+     *
+     * @param teamColor which team to check for stalemate
+     * @return True if the specified team is in stalemate, otherwise false
+     */
+    public boolean isInStalemate(TeamColor teamColor) {
+        if (!isInCheck(teamColor)) {
+            return noValidMoves(teamColor);
+        }
         return false;
     }
 
