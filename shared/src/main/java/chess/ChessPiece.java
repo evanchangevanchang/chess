@@ -62,8 +62,8 @@ public class ChessPiece {
     /**
      * set piece type
      */
-    public void setPieceType(ChessPiece.PieceType new_type) {
-        type = new_type;
+    public void setPieceType(ChessPiece.PieceType newType) {
+        type = newType;
     }
 
     /**
@@ -89,24 +89,24 @@ public class ChessPiece {
      */
     private List<ChessMove> lineMoves (ChessBoard board, ChessPosition myPosition, int[][] directions) {
         List<ChessMove> moves = new ArrayList<>();
-        int start_r = myPosition.getRow();
-        int start_c = myPosition.getColumn();
+        int startR = myPosition.getRow();
+        int startC = myPosition.getColumn();
 
         for (int[] direction : directions) {
-            int current_r = start_r + direction[0];
-            int current_c = start_c + direction[1];
+            int currentR = startR + direction[0];
+            int currentC = startC + direction[1];
 
-            while ((current_r >= 1 && current_r <= 8) && (current_c >= 1 && current_c <= 8)) {
-                ChessPosition pos = new ChessPosition(current_r, current_c);
-                ChessPiece check_square = board.getPiece(pos);
+            while ((currentR >= 1 && currentR <= 8) && (currentC >= 1 && currentC <= 8)) {
+                ChessPosition pos = new ChessPosition(currentR, currentC);
+                ChessPiece checkSquare = board.getPiece(pos);
 
-                if (check_square == null) {
+                if (checkSquare == null) {
                     moves.add(new ChessMove(myPosition, pos, null));
                     // add this position to valid
                     // move to next
                 } else {
                     // landed on a piece
-                    if (check_square.pieceColor != this.pieceColor) { // check if this is correct
+                    if (checkSquare.pieceColor != this.pieceColor) { // check if this is correct
                         moves.add(new ChessMove(myPosition, pos, null));
                     }
                     // check color of the piece,
@@ -114,8 +114,8 @@ public class ChessPiece {
                     // if same, spot is not valid, stop (breaks either way
                     break;
                 }
-                current_r += direction[0];
-                current_c += direction[1];
+                currentR += direction[0];
+                currentC += direction[1];
             }
         }
 
@@ -134,31 +134,7 @@ public class ChessPiece {
 
     //probably can use the same Moves code as king but keeping separate just in case
     private List<ChessMove> knightMoves (ChessBoard board, ChessPosition myPosition) {
-        List<ChessMove> moves = new ArrayList<>();
-        int start_r = myPosition.getRow();
-        int start_c = myPosition.getColumn();
-
-        for (int[] direction : KNIGHT_DIRS) {
-            int current_r = start_r + direction[0];
-            int current_c = start_c + direction[1];
-
-            if ((current_r >= 1 && current_r <= 8) && (current_c >= 1 && current_c <= 8)) {
-                ChessPosition pos = new ChessPosition(current_r, current_c);
-                ChessPiece check_square = board.getPiece(pos);
-
-                if (check_square == null) {
-                    moves.add(new ChessMove(myPosition, pos, null));
-                    // add this position to valid
-                } else {
-                    // landed on a piece
-                    if (check_square.pieceColor != this.pieceColor) {
-                        moves.add(new ChessMove(myPosition, pos, null));
-                    }
-                }
-            }
-        }
-
-        return moves;
+        return getChessMoves(board, myPosition, KNIGHT_DIRS);
     }
 
     private static final int[][] KNIGHT_DIRS = {
@@ -168,60 +144,44 @@ public class ChessPiece {
 
     private List<ChessMove> pawnMoves (ChessBoard board, ChessPosition myPosition) {
         List<ChessMove> moves = new ArrayList<>();
-        int start_r = myPosition.getRow();
-        int start_c = myPosition.getColumn();
+        int startR = myPosition.getRow();
+        int startC = myPosition.getColumn();
 
         // ternary, positive direction if white
-        int direction_sign = (pieceColor == ChessGame.TeamColor.WHITE) ? 1 : -1;
+        int directionSign = (pieceColor == ChessGame.TeamColor.WHITE) ? 1 : -1;
 
         // forward
         for (int[] direction : PAWN_F_DIRS) {
             // im so proud of this line
-            if ((direction[0] == 2) && (start_r != (4.5 - 2.5 * direction_sign))) continue;
-            int current_r = start_r + direction_sign * direction[0];
+            if ((direction[0] == 2) && (startR != (4.5 - 2.5 * directionSign))) {continue;}
+            int currentR = startR + directionSign * direction[0];
             // no current_c needed
-            if ((current_r >= 1 && current_r <= 8)) {
-                ChessPosition pos = new ChessPosition(current_r, start_c);
-                ChessPiece check_square = board.getPiece(pos);
+            if ((currentR >= 1 && currentR <= 8)) {
+                ChessPosition pos = new ChessPosition(currentR, startC);
+                ChessPiece checkSquare = board.getPiece(pos);
 
                 // handle promotion
-                if (check_square == null) {
+                if (checkSquare == null) {
                     // break if moving 2 but blocked
-                    if ((direction[0] == 2) && (board.getPiece(new ChessPosition(current_r - direction_sign, start_c)) != null)) break;
-                    if (((pieceColor == ChessGame.TeamColor.WHITE) && (current_r == 8)) ||
-                            ((pieceColor == ChessGame.TeamColor.BLACK) && (current_r == 1))) {
-                        moves.add(new ChessMove(myPosition, pos, PieceType.BISHOP));
-                        moves.add(new ChessMove(myPosition, pos, PieceType.ROOK));
-                        moves.add(new ChessMove(myPosition, pos, PieceType.QUEEN));
-                        moves.add(new ChessMove(myPosition, pos, PieceType.KNIGHT));
-                    } else {
-
-                        moves.add(new ChessMove(myPosition, pos, null));
-                    }
+                    if ((direction[0] == 2) && (board.getPiece(new ChessPosition(currentR - directionSign, startC)) != null)) {break;}
+                    pawnMovement(myPosition, moves, currentR, pos);
                 }
 
             }
         }
         // diagonal attacks
         for (int[] direction : PAWN_D_DIRS) {
-            int current_r = start_r + direction_sign;
-            int current_c = start_c + direction[1];
+            int currentR = startR + directionSign;
+            int currentC = startC + direction[1];
 
-            if ((current_r >= 1 && current_r <= 8) && (current_c >= 1 && current_c <= 8)) {
-                ChessPosition pos = new ChessPosition(current_r, current_c);
-                ChessPiece check_square = board.getPiece(pos);
+            if ((currentR >= 1 && currentR <= 8) && (currentC >= 1 && currentC <= 8)) {
+                ChessPosition pos = new ChessPosition(currentR, currentC);
+                ChessPiece checkSquare = board.getPiece(pos);
 
-                if (check_square != null) {
+                if (checkSquare != null) {
                     // landed on a piece
-                    if (check_square.pieceColor != this.pieceColor) {
-                        if (((pieceColor == ChessGame.TeamColor.WHITE) && (current_r == 8)) ||
-                                ((pieceColor == ChessGame.TeamColor.BLACK) && (current_r == 1))) {
-                            moves.add(new ChessMove(myPosition, pos, PieceType.BISHOP));
-                            moves.add(new ChessMove(myPosition, pos, PieceType.ROOK));
-                            moves.add(new ChessMove(myPosition, pos, PieceType.QUEEN));
-                            moves.add(new ChessMove(myPosition, pos, PieceType.KNIGHT));
-                        }
-                        else moves.add(new ChessMove(myPosition, pos, null));
+                    if (checkSquare.pieceColor != this.pieceColor) {
+                        pawnMovement(myPosition, moves, currentR, pos);
                     }
                 }
             }
@@ -230,6 +190,20 @@ public class ChessPiece {
 
         return moves;
     }
+
+    private void pawnMovement(ChessPosition myPosition, List<ChessMove> moves, int currentR, ChessPosition pos) {
+        if (((pieceColor == ChessGame.TeamColor.WHITE) && (currentR == 8)) ||
+                ((pieceColor == ChessGame.TeamColor.BLACK) && (currentR == 1))) {
+            moves.add(new ChessMove(myPosition, pos, PieceType.BISHOP));
+            moves.add(new ChessMove(myPosition, pos, PieceType.ROOK));
+            moves.add(new ChessMove(myPosition, pos, PieceType.QUEEN));
+            moves.add(new ChessMove(myPosition, pos, PieceType.KNIGHT));
+        } else {
+
+            moves.add(new ChessMove(myPosition, pos, null));
+        }
+    }
+
     private static final int[][] PAWN_F_DIRS = {
             {1,0}, {2,0}
     };
@@ -239,24 +213,28 @@ public class ChessPiece {
     };
 
     private List<ChessMove> kingMoves (ChessBoard board, ChessPosition myPosition) {
+        return getChessMoves(board, myPosition, KING_DIRS);
+    }
+
+    private List<ChessMove> getChessMoves(ChessBoard board, ChessPosition myPosition, int[][] kingDirs) {
         List<ChessMove> moves = new ArrayList<>();
-        int start_r = myPosition.getRow();
-        int start_c = myPosition.getColumn();
+        int startR = myPosition.getRow();
+        int startC = myPosition.getColumn();
 
-        for (int[] direction : KING_DIRS) {
-            int current_r = start_r + direction[0];
-            int current_c = start_c + direction[1];
+        for (int[] direction : kingDirs) {
+            int currentR = startR + direction[0];
+            int currentC = startC + direction[1];
 
-            if ((current_r >= 1 && current_r <= 8) && (current_c >= 1 && current_c <= 8)) {
-                ChessPosition pos = new ChessPosition(current_r, current_c);
-                ChessPiece check_square = board.getPiece(pos);
+            if ((currentR >= 1 && currentR <= 8) && (currentC >= 1 && currentC <= 8)) {
+                ChessPosition pos = new ChessPosition(currentR, currentC);
+                ChessPiece checkSquare = board.getPiece(pos);
 
-                if (check_square == null) {
+                if (checkSquare == null) {
                     moves.add(new ChessMove(myPosition, pos, null));
                     // add this position to valid
                 } else {
                     // landed on a piece
-                    if (check_square.pieceColor != this.pieceColor) {
+                    if (checkSquare.pieceColor != this.pieceColor) {
                         moves.add(new ChessMove(myPosition, pos, null));
                     }
                     // check color of the piece,
@@ -268,6 +246,7 @@ public class ChessPiece {
 
         return moves;
     }
+
     private static final int[][] KING_DIRS = {
             {1,1}, {1,-1}, {-1,1}, {-1,-1},
             {1,0}, {-1,0}, {0,1}, {0,-1}
