@@ -82,7 +82,7 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        if (board.getPiece(startPosition) == null) return null;
+        if (board.getPiece(startPosition) == null) {return null;}
         Collection<ChessMove> moves = board.getPiece(startPosition).pieceMoves(board, startPosition);
         Collection<ChessMove> validMoves = new ArrayList<>();
         for (ChessMove move : moves) {
@@ -135,7 +135,7 @@ public class ChessGame {
         // change piece type if necessary
         if (promotionPiece != null) {
             board.addPiece(endPosition, new ChessPiece(currentTurn, promotionPiece));
-        } else board.addPiece(endPosition, board.getPiece(startPosition));
+        } else {board.addPiece(endPosition, board.getPiece(startPosition));}
 
         // remove old piece
         board.addPiece(startPosition, null);
@@ -180,10 +180,10 @@ public class ChessGame {
 
     // check if a piece threatens a king
     private boolean kingCheck(ChessPiece piece, ChessPosition piecePosition, ChessPosition kingPosition) {
-        if (kingPosition == null) return false;
+        if (kingPosition == null) {return false;}
         Collection<ChessMove> potentialMoves = piece.pieceMoves(board, piecePosition);
         for (ChessMove move : potentialMoves) {
-            if (move.getEndPosition().equals(kingPosition)) return true;
+            if (move.getEndPosition().equals(kingPosition)) {return true;}
         }
         return false;
     }
@@ -209,7 +209,7 @@ public class ChessGame {
                     ChessPiece currentPiece = board.getPiece(currentPos);
                     if (currentPiece != null && currentPiece.getTeamColor() == teamColor) {
                         Collection<ChessMove> moves = validMoves(currentPos);
-                        if (moves == null) continue;
+                        if (moves == null) {continue;}
 
                         for (ChessMove move : moves) {
 
