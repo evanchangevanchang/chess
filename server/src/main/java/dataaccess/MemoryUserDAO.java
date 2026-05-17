@@ -10,4 +10,13 @@ public class MemoryUserDAO implements UserDAO {
     public void clearUser() {
         USER_MAP.clear();
     }
+
+    public void createUser(String username, String password, String email) {
+        UserData userData = new UserData(username, password, email);
+        USER_MAP.put(username, userData);
+    }
+
+    public UserData getUser(String username) {
+        return USER_MAP.get(username);
+    }
 }

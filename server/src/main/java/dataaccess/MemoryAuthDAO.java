@@ -8,17 +8,18 @@ import java.util.HashMap;
 public class MemoryAuthDAO implements AuthDAO{
     private final static HashMap<String, AuthData> AUTH_MAP = new HashMap<>();
 
-    public static String generateToken() {
+    private static String generateToken() {
         return UUID.randomUUID().toString();
     }
     public void clearAuth() {
         AUTH_MAP.clear();
     }
 
-    public void createAuth(String username) {
+    public String createAuth(String username) {
         String newToken = generateToken();
         AuthData newAuthData = new AuthData(newToken, username);
         AUTH_MAP.put(newToken, newAuthData);
+        return newToken;
     }
 
     public AuthData getAuth(String authToken) {
