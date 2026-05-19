@@ -11,6 +11,7 @@ public class MemoryAuthDAO implements AuthDAO{
     private static String generateToken() {
         return UUID.randomUUID().toString();
     }
+
     public void clearAuth() {
         AUTH_MAP.clear();
     }
@@ -28,7 +29,7 @@ public class MemoryAuthDAO implements AuthDAO{
 
     public void deleteAuth(String authToken) throws DataAccessException{
         if (AUTH_MAP.get(authToken) == null) {
-            throw new DataAccessException("AuthData could not be removed");
+            throw new DataAccessException("AuthData could not be found");
         }
         AUTH_MAP.remove(authToken);
     }
