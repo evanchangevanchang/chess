@@ -6,10 +6,8 @@ import dataaccess.BadRequestException;
 import dataaccess.DataAccessException;
 import io.javalin.*;
 import io.javalin.http.Context;
-import request.CreateGameRequest;
-import request.LoginRequest;
-import request.LogoutRequest;
-import request.RegisterRequest;
+import model.GameData;
+import request.*;
 import result.LoginResult;
 import result.RegisterResult;
 import service.AuthService;
@@ -17,6 +15,7 @@ import service.GameService;
 import service.Service;
 import service.UserService;
 
+import java.util.Collection;
 import java.util.Map;
 
 public class Server {
@@ -30,18 +29,31 @@ public class Server {
 
         // Register your endpoints and exception handlers here.
 
-        javalin.exception(Exception.class, this::exceptionHandler);
+        javalin.exception(DataAccessException.class, this::DataAccessExceptionHandler);
+        javalin.exception(AlreadyTakenException.class, this::AlreadyTakenExceptionHandler);
+        javalin.exception(BadRequestException.class, this::BadRequestExceptionHandler);
         javalin.post("/user", this::registerHandler);
         javalin.post("/session", this::loginHandler);
         javalin.delete("/session", this::logoutHandler);
         javalin.delete("/db", this::clearHandler);
         javalin.post("/game", this::createGameHandler);
         javalin.put("/game", this::joinGameHandler);
+        javalin.get("/game", this::listGameHandler);
     }
 
-    private void exceptionHandler(Exception e, Context context) {
+    private void DataAccessExceptionHandler(DataAccessException e, Context context) {
         var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage()), "success", false));
         context.status(401);
+        context.json(body);
+    }
+    private void AlreadyTakenExceptionHandler(AlreadyTakenException e, Context context) {
+        var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage()), "success", false));
+        context.status(403);
+        context.json(body);
+    }
+    private void BadRequestExceptionHandler(BadRequestException e, Context context) {
+        var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage()), "success", false));
+        context.status(400);
         context.json(body);
     }
 
@@ -49,34 +61,18 @@ public class Server {
         String userInfo = context.body();
         RegisterRequest registerRequest = serializer.fromJson(userInfo, RegisterRequest.class);
         UserService userService = new UserService();
-        try {RegisterResult registerResult = userService.register(registerRequest);
-            context.status(200);
-            context.json(new Gson().toJson(registerResult));}
-        catch(AlreadyTakenException e) {
-            var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage()), "success", false));
-            context.status(403);
-            context.json(body);
-        }
-        catch(BadRequestException e) {
-            var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage()), "success", false));
-            context.status(400);
-            context.json(body);
-        }
+        RegisterResult registerResult = userService.register(registerRequest);
+        context.status(200);
+        context.json(new Gson().toJson(registerResult));
+
     }
 
     private void loginHandler(Context context) throws DataAccessException {
         UserService userService = new UserService();
         LoginRequest loginRequest = serializer.fromJson(context.body(), LoginRequest.class);
-        try {
             LoginResult loginResult = userService.login(loginRequest);
             context.status(200);
             context.json(new Gson().toJson(loginResult));
-        } catch (BadRequestException e) {
-            var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage()), "success", false));
-            context.status(400);
-            context.json(body);
-        }
-
     }
 
     private void logoutHandler(Context context) throws DataAccessException {
@@ -96,20 +92,32 @@ public class Server {
 
         CreateGameRequest createGameRequest = serializer.fromJson(context.body(), CreateGameRequest.class);
         String gameName = createGameRequest.gameName();
-        try {
             int gameID = gameService.createGame(gameName);
             context.status(200);
             context.json(new Gson().toJson(Map.of("gameID", gameID)));
-        }
-        catch (BadRequestException e) {
-            var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage()), "success", false));
-            context.status(400);
-            context.json(body);
-        }
+    }
+
+    private void listGameHandler(Context context) throws DataAccessException {
+        GameService gameService = new GameService();
+        String authToken = context.header("authorization");
+        AuthService authService = new AuthService();
+        authService.validateAuth(authToken);
+
+        Collection<GameData> games = gameService.listGames();
+        context.status(200);
+        context.json(new Gson().toJson(Map.of("games", games)));
     }
 
     private void joinGameHandler(Context context) throws DataAccessException {
+        GameService gameService = new GameService();
+        String authToken = context.header("authorization");
+        AuthService authService = new AuthService();
+        authService.validateAuth(authToken);
 
+        JoinGameRequest joinGameRequest = serializer.fromJson(context.body(), JoinGameRequest.class);
+        gameService.joinGame(joinGameRequest);
+        context.status(200);
+        context.json(new Gson().toJson(Map.of("success", true)));
     }
 
     private void clearHandler(Context context) {
