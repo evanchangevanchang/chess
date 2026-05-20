@@ -10,6 +10,7 @@ public class LogoutTest extends Service {
 
     @Test
     public void logoutSuccess() {
+        this.clear();
         RegisterRequest registerRequest = new RegisterRequest(
                 "PatrickGibbons69", "password", "email");
         UserService userService = new UserService();
@@ -25,6 +26,7 @@ public class LogoutTest extends Service {
 
     @Test
     public void logoutFail() {
+        this.clear();
         RegisterRequest registerRequest = new RegisterRequest(
                 "PatrickGibbons69", "password", "email");
         UserService userService = new UserService();

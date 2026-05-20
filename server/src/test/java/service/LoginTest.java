@@ -11,6 +11,7 @@ import result.LoginResult;
 public class LoginTest extends Service{
     @Test
     public void loginSuccess() {
+        this.clear();
         RegisterRequest registerRequest = new RegisterRequest(
                 "PatrickGibbons69", "password", "email");
         UserService userService = new UserService();

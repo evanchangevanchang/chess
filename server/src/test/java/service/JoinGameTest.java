@@ -10,6 +10,7 @@ import request.RegisterRequest;
 public class JoinGameTest extends Service {
     @Test
     public void joinGameSuccess() {
+        this.clear();
         var gameService = new GameService();
         gameService.createGame("meow");
 
@@ -30,6 +31,7 @@ public class JoinGameTest extends Service {
 
     @Test
     public void joinGameFail() {
+        this.clear();
         var gameService = new GameService();
         gameService.createGame("meow");
 
