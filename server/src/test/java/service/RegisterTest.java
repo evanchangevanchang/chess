@@ -26,18 +26,3 @@ public class RegisterTest extends Service {
         Assertions.assertThrows(BadRequestException.class, () -> userService.register(testRegReq));
     }
 }
-
-
-
-
-
-//public class ClearTest {
-//
-//
-//    public void clearTest() {
-//        GameService gameService = new GameService();
-//        gameService.createGame("hello everyone");
-//        gameService.clear();
-//        Assertions.assertNull(gameService.getGame(1));
-//    }
-//}
