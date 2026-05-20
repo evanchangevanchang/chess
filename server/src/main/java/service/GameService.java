@@ -1,8 +1,10 @@
 package service;
 
 import chess.ChessGame;
+import dataaccess.AlreadyTakenException;
 import dataaccess.BadRequestException;
 import dataaccess.DataAccessException;
+import model.AuthData;
 import model.GameData;
 import request.JoinGameRequest;
 
@@ -30,7 +32,7 @@ public class GameService extends Service{
         return gameDAO.createGame(gameName);
     }
 
-    public void joinGame(JoinGameRequest joinGameRequest) throws DataAccessException {
+    public void joinGame(JoinGameRequest joinGameRequest, String authToken) throws DataAccessException {
         ChessGame.TeamColor playerColor = joinGameRequest.playerColor();
         int gameID = joinGameRequest.gameID();
         if (playerColor == null) {
@@ -38,7 +40,21 @@ public class GameService extends Service{
         }
         GameData gameData = this.getGame(gameID);
         if (gameData == null) {
-            throw new DataAccessException("gameData not found");
+            throw new BadRequestException("gameData not found");
+        }
+        AuthData authData = authDAO.getAuth(authToken);
+        String username = authData.username();
+        if (playerColor == ChessGame.TeamColor.WHITE && gameData.whiteUsername() == null) {
+            // create new game data with different username
+            GameData newGameData = new GameData(gameData.gameID(), username,
+                    gameData.blackUsername(), gameData.gameName(), gameData.game());
+            gameDAO.updateGame(gameData.gameID(), newGameData);
+        } else if (playerColor == ChessGame.TeamColor.BLACK && gameData.blackUsername() == null) {
+            GameData newGameData = new GameData(gameData.gameID(), gameData.whiteUsername(),
+                    username, gameData.gameName(), gameData.game());
+            gameDAO.updateGame(gameData.gameID(), newGameData);
+        } else {
+            throw new AlreadyTakenException("color already taken");
         }
     }
 }

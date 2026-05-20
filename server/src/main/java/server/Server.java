@@ -115,7 +115,7 @@ public class Server {
         authService.validateAuth(authToken);
 
         JoinGameRequest joinGameRequest = serializer.fromJson(context.body(), JoinGameRequest.class);
-        gameService.joinGame(joinGameRequest);
+        gameService.joinGame(joinGameRequest, authToken);
         context.status(200);
         context.json(new Gson().toJson(Map.of("success", true)));
     }
