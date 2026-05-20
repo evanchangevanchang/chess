@@ -29,9 +29,9 @@ public class Server {
 
         // Register your endpoints and exception handlers here.
 
-        javalin.exception(DataAccessException.class, this::DataAccessExceptionHandler);
-        javalin.exception(AlreadyTakenException.class, this::AlreadyTakenExceptionHandler);
-        javalin.exception(BadRequestException.class, this::BadRequestExceptionHandler);
+        javalin.exception(DataAccessException.class, this::dataAccessExceptionHandler);
+        javalin.exception(AlreadyTakenException.class, this::alreadyTakenExceptionHandler);
+        javalin.exception(BadRequestException.class, this::badRequestExceptionHandler);
         javalin.post("/user", this::registerHandler);
         javalin.post("/session", this::loginHandler);
         javalin.delete("/session", this::logoutHandler);
@@ -41,17 +41,17 @@ public class Server {
         javalin.get("/game", this::listGameHandler);
     }
 
-    private void DataAccessExceptionHandler(DataAccessException e, Context context) {
+    private void dataAccessExceptionHandler(DataAccessException e, Context context) {
         var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage()), "success", false));
         context.status(401);
         context.json(body);
     }
-    private void AlreadyTakenExceptionHandler(AlreadyTakenException e, Context context) {
+    private void alreadyTakenExceptionHandler(AlreadyTakenException e, Context context) {
         var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage()), "success", false));
         context.status(403);
         context.json(body);
     }
-    private void BadRequestExceptionHandler(BadRequestException e, Context context) {
+    private void badRequestExceptionHandler(BadRequestException e, Context context) {
         var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage()), "success", false));
         context.status(400);
         context.json(body);

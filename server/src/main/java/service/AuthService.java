@@ -1,6 +1,5 @@
 package service;
 
-import dataaccess.AuthDAO;
 import dataaccess.DataAccessException;
 
 public class AuthService extends Service{
