@@ -9,7 +9,7 @@ import request.RegisterRequest;
 public class LogoutTest extends Service {
 
     @Test
-    public void logoutSuccessTest() {
+    public void logoutSuccess() {
         RegisterRequest registerRequest = new RegisterRequest(
                 "PatrickGibbons69", "password", "email");
         UserService userService = new UserService();
@@ -24,7 +24,7 @@ public class LogoutTest extends Service {
     }
 
     @Test
-    public void logoutFailTest() {
+    public void logoutFail() {
         RegisterRequest registerRequest = new RegisterRequest(
                 "PatrickGibbons69", "password", "email");
         UserService userService = new UserService();

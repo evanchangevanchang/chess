@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 public class ClearTest {
 
     @Test
-    public void clearTest() {
+    public void clearSuccess() {
         GameService gameService = new GameService();
         gameService.createGame("hello everyone");
         gameService.clear();

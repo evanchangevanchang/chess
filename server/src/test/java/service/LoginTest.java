@@ -7,11 +7,10 @@ import request.LoginRequest;
 import request.LogoutRequest;
 import request.RegisterRequest;
 import result.LoginResult;
-import result.RegisterResult;
 
 public class LoginTest extends Service{
     @Test
-    public void loginSuccessTest() {
+    public void loginSuccess() {
         RegisterRequest registerRequest = new RegisterRequest(
                 "PatrickGibbons69", "password", "email");
         UserService userService = new UserService();
@@ -31,7 +30,7 @@ public class LoginTest extends Service{
     }
 
     @Test
-    public void loginFailTest() {
+    public void loginFail() {
         this.clear();
         RegisterRequest registerRequest = new RegisterRequest(
                 "PatrickGibbons69", "password", "email");
