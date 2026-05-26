@@ -24,7 +24,7 @@ public class SQLUserDAO extends SQLDAO implements UserDAO{
 
     @Override
     public void clearUser() {
-        var statement = "DROP database user";
+        var statement = "TRUNCATE TABLE user";
         try {executeUpdate(statement); }
         catch (SQLException e) {
             throw new DatabaseAccessException("clearUser failed");

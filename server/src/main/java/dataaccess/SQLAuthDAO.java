@@ -22,10 +22,10 @@ public class SQLAuthDAO extends SQLDAO implements AuthDAO {
 
     @Override
     public void clearAuth()  {
-        var statement = "DROP database auth";
+        var statement = "TRUNCATE TABLE auth";
         try {executeUpdate(statement); }
         catch (SQLException e) {
-            throw new DatabaseAccessException("clearAuth failed");
+            throw new DatabaseAccessException("clearAuth failed" + e.getMessage());
         }
     }
 

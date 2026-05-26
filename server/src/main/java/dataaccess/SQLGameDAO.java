@@ -24,7 +24,7 @@ public class SQLGameDAO extends SQLDAO implements GameDAO{
 
     @Override
     public void clearGame()  {
-        var statement = "DROP database game";
+        var statement = "TRUNCATE TABLE game";
         try {executeUpdate(statement); }
         catch (SQLException e) {
             throw new DatabaseAccessException("clearGame failed");

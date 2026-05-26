@@ -7,12 +7,12 @@ public class SQLDAO {
     public SQLDAO() throws DatabaseAccessException {
         try {
             DatabaseManager.createDatabase();
-            new SQLUserDAO();
-            new SQLAuthDAO();
-            new SQLGameDAO();
+//            new SQLUserDAO();
+//            new SQLAuthDAO();
+//            new SQLGameDAO();
 
         } catch (DataAccessException e) {
-            throw new DatabaseAccessException("clear failed");
+            throw new DatabaseAccessException("clear failed:" + e.getMessage());
         }
     }
 
@@ -39,7 +39,7 @@ public class SQLDAO {
                     Object param = params[i];
                     if (param instanceof String thing) preparedStatement.setString(i + 1, thing);
                     else if (param instanceof Integer thing) preparedStatement.setInt(i + 1, thing);
-                    else if (param == null) preparedStatement.setNull(i + 1, NULL);
+                    else if (param == null) preparedStatement.setNull(i + 1, Types.NULL);
                 }
                 preparedStatement.executeUpdate();
 
