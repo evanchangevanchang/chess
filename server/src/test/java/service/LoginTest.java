@@ -10,7 +10,7 @@ import result.LoginResult;
 
 public class LoginTest extends Service{
     @Test
-    public void loginSuccess() {
+    public void loginSuccess() throws DataAccessException {
         this.clear();
         RegisterRequest registerRequest = new RegisterRequest(
                 "PatrickGibbons69", "password", "email");
@@ -31,7 +31,7 @@ public class LoginTest extends Service{
     }
 
     @Test
-    public void loginFail() {
+    public void loginFail() throws DataAccessException {
         this.clear();
         RegisterRequest registerRequest = new RegisterRequest(
                 "PatrickGibbons69", "password", "email");

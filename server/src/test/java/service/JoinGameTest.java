@@ -2,6 +2,7 @@ package service;
 
 import chess.ChessGame;
 import dataaccess.AlreadyTakenException;
+import dataaccess.DataAccessException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import request.JoinGameRequest;
@@ -9,7 +10,7 @@ import request.RegisterRequest;
 
 public class JoinGameTest extends Service {
     @Test
-    public void joinGameSuccess() {
+    public void joinGameSuccess() throws DataAccessException {
         this.clear();
         var gameService = new GameService();
         gameService.createGame("meow");
@@ -30,7 +31,7 @@ public class JoinGameTest extends Service {
     }
 
     @Test
-    public void joinGameFail() {
+    public void joinGameFail() throws DataAccessException {
         this.clear();
         var gameService = new GameService();
         gameService.createGame("meow");

@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import dataaccess.AlreadyTakenException;
 import dataaccess.BadRequestException;
 import dataaccess.DataAccessException;
+import dataaccess.DatabaseAccessException;
 import io.javalin.*;
 import io.javalin.http.Context;
 import model.GameData;
@@ -32,6 +33,7 @@ public class Server {
         javalin.exception(DataAccessException.class, this::dataAccessExceptionHandler);
         javalin.exception(AlreadyTakenException.class, this::alreadyTakenExceptionHandler);
         javalin.exception(BadRequestException.class, this::badRequestExceptionHandler);
+        javalin.exception(DatabaseAccessException.class, this::databaseAccessExceptionHandler);
         javalin.post("/user", this::registerHandler);
         javalin.post("/session", this::loginHandler);
         javalin.delete("/session", this::logoutHandler);
@@ -56,8 +58,13 @@ public class Server {
         context.status(400);
         context.json(body);
     }
+    private void databaseAccessExceptionHandler(DatabaseAccessException e, Context context) {
+        var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage()), "success", false));
+        context.status(500);
+        context.json(body);
+    }
 
-    private void registerHandler(Context context) {
+    private void registerHandler(Context context) throws DataAccessException {
         String userInfo = context.body();
         RegisterRequest registerRequest = serializer.fromJson(userInfo, RegisterRequest.class);
         UserService userService = new UserService();
@@ -120,7 +127,7 @@ public class Server {
         context.json(new Gson().toJson(Map.of("success", true)));
     }
 
-    private void clearHandler(Context context) {
+    private void clearHandler(Context context) throws DataAccessException{
         Service service = new Service();
         service.clear();
         context.status(200);

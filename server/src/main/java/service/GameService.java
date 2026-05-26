@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 public class GameService extends Service{
-    public Collection<GameData> listGames() {
+    public Collection<GameData> listGames() throws DataAccessException {
         Collection<GameData> games = new ArrayList<>();
         int gameID = 1;
         while (gameDAO.getGame(gameID) != null) {
@@ -21,11 +21,11 @@ public class GameService extends Service{
         }
         return games;
     }
-    public GameData getGame(int gameID) {
+    public GameData getGame(int gameID) throws DataAccessException {
         return gameDAO.getGame(gameID);
     }
 
-    public int createGame(String gameName) {
+    public int createGame(String gameName) throws DataAccessException {
         if (gameName == null) {
             throw new BadRequestException("game name cannot be empty");
         }

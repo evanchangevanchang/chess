@@ -1,15 +1,24 @@
 package service;
 
-import dataaccess.MemoryAuthDAO;
-import dataaccess.MemoryGameDAO;
-import dataaccess.MemoryUserDAO;
+import dataaccess.*;
 
 public class Service {
-    MemoryUserDAO userDAO = new MemoryUserDAO();
-    MemoryAuthDAO authDAO = new MemoryAuthDAO();
-    MemoryGameDAO gameDAO = new MemoryGameDAO();
+    UserDAO userDAO;
+    AuthDAO authDAO;
+    GameDAO gameDAO;
+    public Service() {
+        try {
+             userDAO = new SQLUserDAO();
+             authDAO = new SQLAuthDAO();
+             gameDAO = new SQLGameDAO();
+        } catch (DataAccessException e) {
+            throw new RuntimeException("failed to start DAOs");
+        }
 
-    public void clear() {
+    }
+
+
+    public void clear() throws DataAccessException {
         userDAO.clearUser();
         authDAO.clearAuth();
         gameDAO.clearGame();

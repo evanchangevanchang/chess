@@ -1,6 +1,7 @@
 package service;
 
 import dataaccess.BadRequestException;
+import dataaccess.DataAccessException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import request.RegisterRequest;
@@ -8,7 +9,7 @@ import result.RegisterResult;
 
 public class RegisterTest extends Service {
     @Test
-    public void registerSuccessTest() {
+    public void registerSuccessTest() throws DataAccessException  {
         RegisterRequest testRegReq = new RegisterRequest("Xx_BBC_MATTRESS_xX", "password", "email");
         UserService userService = new UserService();
         RegisterResult result = userService.register(testRegReq);

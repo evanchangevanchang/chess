@@ -9,7 +9,7 @@ import request.RegisterRequest;
 public class LogoutTest extends Service {
 
     @Test
-    public void logoutSuccess() {
+    public void logoutSuccess() throws DataAccessException {
         this.clear();
         RegisterRequest registerRequest = new RegisterRequest(
                 "PatrickGibbons69", "password", "email");
@@ -25,7 +25,7 @@ public class LogoutTest extends Service {
     }
 
     @Test
-    public void logoutFail() {
+    public void logoutFail() throws DataAccessException {
         this.clear();
         RegisterRequest registerRequest = new RegisterRequest(
                 "PatrickGibbons69", "password", "email");

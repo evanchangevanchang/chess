@@ -12,7 +12,7 @@ import result.RegisterResult;
 
 
 public class UserService extends Service {
-    public RegisterResult register(RegisterRequest registerRequest) throws BadRequestException, AlreadyTakenException {
+    public RegisterResult register(RegisterRequest registerRequest) throws BadRequestException, AlreadyTakenException, DataAccessException {
         String username = registerRequest.username();
         String password = registerRequest.password();
         String email = registerRequest.email();
@@ -46,7 +46,7 @@ public class UserService extends Service {
         }
 
         // check if password is correct
-        if (!userData.password().equals(password)) {
+        if (userDAO.verifyPassword(username, password)) {
             throw new DataAccessException("incorrect password");
         }
         // create auth data
