@@ -15,7 +15,8 @@ public class SQLGameDAO extends SQLDAO implements GameDAO{
                whiteUsername VARCHAR(255),
                blackUsername VARCHAR(255),
                gameName VARCHAR(255) NOT NULL,
-               game JSON NOT NULL
+               game JSON NOT NULL,
+               UNIQUE(gameID)
                );
                """
         };
@@ -55,13 +56,13 @@ public class SQLGameDAO extends SQLDAO implements GameDAO{
         }
         int gameID = getCurrentID();
         String statement = """
-            INSERT INTO game (gameID, whiteUsername, blackUsername,
-            gameName, game) VALUES (?, ?, ?, ?, ?)
+            INSERT INTO game (whiteUsername, blackUsername,
+            gameName, game) VALUES (?, ?, ?, ?)
         """;
         ChessGame chessGame = new ChessGame();
         var chessJson = new Gson().toJson(chessGame);
         try {
-        executeUpdate(statement, gameID, null, null, gameName, chessJson);
+        executeUpdate(statement, null, null, gameName, chessJson);
         return gameID;
         } catch (SQLException e) {
             throw new DatabaseAccessException("createGame failed");
@@ -69,20 +70,24 @@ public class SQLGameDAO extends SQLDAO implements GameDAO{
     }
 
     @Override
-    public void updateGame(int gameID, GameData gameData) throws DataAccessException {
+    public void updateGame(int gameID, GameData gameData){
         if (gameData == null) {
             throw new DatabaseAccessException("no gameData to update found");
         }
-        String deleteStatement = String.format("DELETE FROM game WHERE gameID = %d", gameID);
-        String addStatement = """
-            INSERT INTO game (gameID, whiteUsername, blackUsername,
-            gameName, game) VALUES (?, ?, ?, ?, ?)
-        """;
+
+        String statement = """
+                UPDATE game
+                SET whiteUsername = ?,
+                blackUsername = ?,
+                gameName = ?,
+                game = ?
+                WHERE gameID = ?
+                """;
         try {
-            executeUpdate(deleteStatement);
             var chessJson = new Gson().toJson(gameData.game());
-            executeUpdate(addStatement, gameID, gameData.whiteUsername(),
-                    gameData.blackUsername(), gameData.gameName(), chessJson);
+            executeUpdate(statement, gameData.whiteUsername(),
+                    gameData.blackUsername(), gameData.gameName(),
+                    chessJson, gameID);
 
         } catch (SQLException e) {
             throw new DatabaseAccessException("updateGame failed");

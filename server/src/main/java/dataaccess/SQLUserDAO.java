@@ -1,10 +1,8 @@
 package dataaccess;
 
-import io.javalin.http.Context;
 import model.UserData;
 import org.mindrot.jbcrypt.BCrypt;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 
 public class SQLUserDAO extends SQLDAO implements UserDAO{
