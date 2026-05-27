@@ -167,6 +167,20 @@ public class SQLDataAccessTests extends SQLDAO {
         Assertions.assertThrows(DatabaseAccessException.class, () ->
         gameDAO.updateGame(gameID, null));
     }
+    @Test
+    void deleteAuthSuc() {
+        authDAO.clearAuth();
+        String authToken = authDAO.createAuth("ChuuCanDoIt");
+        authDAO.deleteAuth(authToken);
+        Assertions.assertNull(authDAO.getAuth(authToken));
+    }
+    @Test
+    void deleteAuthFail() {
+        authDAO.clearAuth();
+        String authToken = authDAO.createAuth("ChuuCanDoIt");
+        authDAO.deleteAuth("not auth Token");
+        Assertions.assertNotNull(authDAO.getAuth(authToken));
+    }
 
     void checkClear(String statement) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
@@ -184,18 +198,6 @@ public class SQLDataAccessTests extends SQLDAO {
             try (var ps = conn.prepareStatement(statement)) {
                 var rs = ps.executeQuery(statement);
                 Assertions.assertTrue(rs.next());
-            }
-        } catch (SQLException e ) {
-            throw new DataAccessException("clear error");
-        }
-    }
-    // maybe remove
-    void checkError(String statement) throws DataAccessException {
-        try (var conn = DatabaseManager.getConnection()) {
-            try (var ps = conn.prepareStatement(statement)) {
-                Assertions.assertThrows(DatabaseAccessException.class, () ->
-                                ps.executeQuery(statement)
-                        );
             }
         } catch (SQLException e ) {
             throw new DataAccessException("clear error");
