@@ -7,10 +7,6 @@ public class SQLDAO {
     public SQLDAO() throws DatabaseAccessException {
         try {
             DatabaseManager.createDatabase();
-//            new SQLUserDAO();
-//            new SQLAuthDAO();
-//            new SQLGameDAO();
-
         } catch (DataAccessException e) {
             throw new DatabaseAccessException("clear failed:" + e.getMessage());
         }
@@ -20,7 +16,6 @@ public class SQLDAO {
     public void configureDB(String[] statements) throws DatabaseAccessException {
         try (var connection = DatabaseManager.getConnection()) {
             for (String statement : statements) {
-                // if (statement == null) {continue;} // maybe
                 try (var preparedStatement = connection.prepareStatement(statement)) {
                     preparedStatement.executeUpdate();
                 }
