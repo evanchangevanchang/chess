@@ -19,17 +19,34 @@ public class SQLDataAccessTests extends SQLDAO {
     }
 
     @Test
-    @BeforeEach
     void clearUser() throws DataAccessException {
-
         userDAO.createUser("XxBBC_MattressxX", "yum", "email");
-
         userDAO.clearUser();
-
-
         String statement = """
                 SELECT * FROM user
                 """;
+        checkClear(statement);
+    }
+    @Test
+    void clearGame() throws DataAccessException {
+        gameDAO.createGame("jeep by kim petras");
+        gameDAO.clearGame();
+        String statement = """
+                SELECT * FROM game
+                """;
+        checkClear(statement);
+    }
+    @Test
+    void clearAuth() throws DataAccessException {
+        authDAO.createAuth("CANNIBALISM! by Slayyyter");
+        authDAO.clearAuth();
+        String statement = """
+                SELECT * FROM auth
+                """;
+        checkClear(statement);
+    }
+
+    void checkClear(String statement) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             try (var ps = conn.prepareStatement(statement)) {
                 var rs = ps.executeQuery(statement);
@@ -39,4 +56,5 @@ public class SQLDataAccessTests extends SQLDAO {
             throw new DataAccessException("clear error");
         }
     }
+
 }
