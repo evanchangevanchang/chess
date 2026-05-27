@@ -43,7 +43,7 @@ public class SQLAuthDAO extends SQLDAO implements AuthDAO {
 
     @Override
     public AuthData getAuth(String authToken) throws DatabaseAccessException {
-        String statement = "SELECT username, authToken, FROM auth WHERE authToken=?";
+        String statement = "SELECT username, authToken FROM auth WHERE authToken=?";
         try (var connection = DatabaseManager.getConnection()) {
             try (var ps = connection.prepareStatement(statement)) {
                 ps.setString(1, authToken);
@@ -62,8 +62,8 @@ public class SQLAuthDAO extends SQLDAO implements AuthDAO {
 
     @Override
     public void deleteAuth(String authToken) {
-        String statement = String.format("DELETE FROM auth WHERE authToken = %s", authToken);
-        try {executeUpdate(statement); }
+        String statement = "DELETE FROM auth WHERE authToken =?";
+        try {executeUpdate(statement, authToken); }
         catch (SQLException e) {
             throw new DatabaseAccessException("deleteAuth failed");
         }

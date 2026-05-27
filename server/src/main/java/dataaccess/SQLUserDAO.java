@@ -59,7 +59,7 @@ public class SQLUserDAO extends SQLDAO implements UserDAO{
         return null;
     }
 
-    @Override
+
     public boolean verifyPassword(String username, String attemptPassword) {
         UserData userData = this.getUser(username);
         String hashedPassword = userData.password();

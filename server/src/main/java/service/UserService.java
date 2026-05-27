@@ -46,7 +46,7 @@ public class UserService extends Service {
         }
 
         // check if password is correct
-        if (userDAO.verifyPassword(username, password)) {
+        if (!userDAO.verifyPassword(username, password)) {
             throw new DataAccessException("incorrect password");
         }
         // create auth data

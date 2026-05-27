@@ -11,9 +11,9 @@ public class SQLGameDAO extends SQLDAO implements GameDAO{
         String[] statements = new String[]{
                 """
                CREATE TABLE IF NOT EXISTS game (
-               gameID INT NOT NULL PRIMARY KEY,
-               whiteUsername VARCHAR(255) NOT NULL,
-               blackUsername VARCHAR(255) NOT NULL,
+               gameID INT AUTO_INCREMENT PRIMARY KEY,
+               whiteUsername VARCHAR(255),
+               blackUsername VARCHAR(255),
                gameName VARCHAR(255) NOT NULL,
                game JSON NOT NULL
                );
@@ -32,7 +32,7 @@ public class SQLGameDAO extends SQLDAO implements GameDAO{
     }
 
     private int getCurrentID(){
-        String statement = "SELECT LEN(game)";
+        String statement = "SELECT MAX(gameID) from game";
         try (var connection = DatabaseManager.getConnection()) {
             var ps = connection.prepareStatement(statement);
             var result = ps.executeQuery();
@@ -93,18 +93,21 @@ public class SQLGameDAO extends SQLDAO implements GameDAO{
     @Override
     public GameData getGame(int gameID) throws DatabaseAccessException {
         String statement = "SELECT gameID, whiteUsername, blackUsername," +
-                "gameName, email, game FROM game WHERE gameID=?";
+                "gameName, game FROM game WHERE gameID=?";
         try (var connection = DatabaseManager.getConnection()) {
             try (var ps = connection.prepareStatement(statement)) {
                 ps.setInt(1, gameID);
                 var result = ps.executeQuery();
-                ChessGame chessGame = new Gson().fromJson(result.getString("game"), ChessGame.class);
-                return new GameData(gameID, result.getString("whiteUsername"),
-                        result.getString("blackUsername"), result.getString("gameName"),
-                        chessGame);
+                if (result.next()) {
+                    ChessGame chessGame = new Gson().fromJson(result.getString("game"), ChessGame.class);
+                    return new GameData(gameID, result.getString("whiteUsername"),
+                            result.getString("blackUsername"), result.getString("gameName"),
+                            chessGame);
+                }
             }
         } catch (SQLException | DataAccessException e) {
             throw new DatabaseAccessException("failed to get Game");
         }
+        return null;
     }
 }

@@ -37,9 +37,12 @@ public class SQLDAO {
             try (var preparedStatement = connection.prepareStatement(statement, Statement.RETURN_GENERATED_KEYS)) {
                 for (int i = 0; i < params.length; i++) {
                     Object param = params[i];
-                    if (param instanceof String thing) preparedStatement.setString(i + 1, thing);
-                    else if (param instanceof Integer thing) preparedStatement.setInt(i + 1, thing);
-                    else if (param == null) preparedStatement.setNull(i + 1, Types.NULL);
+                    switch (param) {
+                        case String thing -> preparedStatement.setString(i + 1, thing);
+                        case Integer thing -> preparedStatement.setInt(i + 1, thing);
+                        case null -> preparedStatement.setNull(i + 1, NULL);
+                        default -> throw new DatabaseAccessException("unexpected param type");
+                    }
                 }
                 preparedStatement.executeUpdate();
 
