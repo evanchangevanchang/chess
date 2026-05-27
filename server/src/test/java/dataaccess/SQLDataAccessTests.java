@@ -145,6 +145,28 @@ public class SQLDataAccessTests extends SQLDAO {
         userDAO.createUser("ChuuCanDoIt", "MaeSuckz", "emails");
         Assertions.assertFalse(userDAO.verifyPassword("ChuuCanDoIt","MaeDoesNotSuckz"));
     }
+    @Test
+    void updateGameSuc() {
+        gameDAO.clearGame();
+        int gameID = gameDAO.createGame("JRJRJR");
+        GameData oldGameData = gameDAO.getGame(gameID);
+        GameData newGameData = new GameData(gameID, "6chuusterbator7", null,
+                oldGameData.gameName(), oldGameData.game());
+        // call update
+        gameDAO.updateGame(gameID, newGameData);
+        GameData result = gameDAO.getGame(gameID);
+        // make sure it matches new game version and not old
+        Assertions.assertEquals(newGameData, result);
+        Assertions.assertNotEquals(oldGameData, result);
+    }
+    @Test
+    void updateGameFail() {
+        gameDAO.clearGame();
+        int gameID = gameDAO.createGame("JRJRJR");
+        // fail to update
+        Assertions.assertThrows(DatabaseAccessException.class, () ->
+        gameDAO.updateGame(gameID, null));
+    }
 
     void checkClear(String statement) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
