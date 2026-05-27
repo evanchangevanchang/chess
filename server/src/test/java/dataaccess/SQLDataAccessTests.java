@@ -107,19 +107,43 @@ public class SQLDataAccessTests extends SQLDAO {
         GameData gameData = gameDAO.getGame(-1);
         Assertions.assertNull(gameData);
     }
-
+    @Test
+    void getAuthSuc() {
+        authDAO.clearAuth();
+        String authToken = authDAO.createAuth("ChuuCanDoIt");
+         AuthData authData = authDAO.getAuth(authToken);
+        Assertions.assertEquals("ChuuCanDoIt", authData.username());
+    }
     @Test
     void getAuthFail() {
         authDAO.clearAuth();
         AuthData authData = authDAO.getAuth("steph curry");
         Assertions.assertNull(authData);
     }
-
+    @Test
+    void getUserSuc() {
+        userDAO.clearUser();
+        userDAO.createUser("ChuuCanDoIt", "MaeSucks", "emails");
+        UserData userData = userDAO.getUser("ChuuCanDoIt");
+        Assertions.assertEquals("ChuuCanDoIt", userData.username());
+    }
     @Test
     void getUserFail() {
         userDAO.clearUser();
         UserData userData = userDAO.getUser("steph curry");
         Assertions.assertNull(userData);
+    }
+    @Test
+    void verifyPasswordSuc() {
+        userDAO.clearUser();
+        userDAO.createUser("ChuuCanDoIt", "MaeSuckz", "emails");
+        Assertions.assertTrue(userDAO.verifyPassword("ChuuCanDoIt","MaeSuckz"));
+    }
+    @Test
+    void verifyPasswordFail() {
+        userDAO.clearUser();
+        userDAO.createUser("ChuuCanDoIt", "MaeSuckz", "emails");
+        Assertions.assertFalse(userDAO.verifyPassword("ChuuCanDoIt","MaeDoesNotSuckz"));
     }
 
     void checkClear(String statement) throws DataAccessException {
