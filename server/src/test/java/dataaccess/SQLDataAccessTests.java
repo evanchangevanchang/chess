@@ -1,7 +1,9 @@
 package dataaccess;
 
+import model.AuthData;
+import model.GameData;
+import model.UserData;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
@@ -91,6 +93,33 @@ public class SQLDataAccessTests extends SQLDAO {
         Assertions.assertThrows(BadRequestException.class, () ->
         gameDAO.createGame(null)
         );
+    }
+    @Test
+    void getGameSuc() {
+        gameDAO.clearGame();
+        int gameID = gameDAO.createGame("gay");
+        GameData gameData = gameDAO.getGame(gameID);
+        Assertions.assertNotNull(gameData);
+    }
+    @Test
+    void getGameFail() {
+        gameDAO.clearGame();
+        GameData gameData = gameDAO.getGame(-1);
+        Assertions.assertNull(gameData);
+    }
+
+    @Test
+    void getAuthFail() {
+        authDAO.clearAuth();
+        AuthData authData = authDAO.getAuth("steph curry");
+        Assertions.assertNull(authData);
+    }
+
+    @Test
+    void getUserFail() {
+        userDAO.clearUser();
+        UserData userData = userDAO.getUser("steph curry");
+        Assertions.assertNull(userData);
     }
 
     void checkClear(String statement) throws DataAccessException {
