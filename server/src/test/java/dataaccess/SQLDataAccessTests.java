@@ -46,11 +46,81 @@ public class SQLDataAccessTests extends SQLDAO {
         checkClear(statement);
     }
 
+    @Test
+    void createUserSuc() throws DataAccessException {
+        userDAO.clearUser();
+        userDAO.createUser("I", "LOVE", "CHOCOLATE");
+        String statement = """
+                SELECT * FROM user
+                """;
+        checkNotClear(statement);
+    }
+    @Test
+    void createUserFail() {
+        userDAO.clearUser();
+        Assertions.assertThrows(DatabaseAccessException.class, () ->
+                userDAO.createUser(null, null, "CHOCOLATE") );
+    }
+    @Test
+    void createAuthSuc() throws DataAccessException {
+        authDAO.clearAuth();
+        authDAO.createAuth("PRETTY4U");
+        String statement = """
+                SELECT * FROM auth
+                """;
+        checkNotClear(statement);
+    }
+    @Test
+    void createAuthFail() {
+        authDAO.clearAuth();
+        Assertions.assertThrows(DatabaseAccessException.class, () ->
+        authDAO.createAuth(null) );
+    }
+    @Test
+    void createGameSuc() throws DataAccessException {
+        gameDAO.clearGame();
+        gameDAO.createGame("meow");
+        String statement = """
+                SELECT * FROM game
+                """;
+        checkNotClear(statement);
+    }
+    @Test
+    void createGameFail() {
+        gameDAO.clearGame();
+        Assertions.assertThrows(BadRequestException.class, () ->
+        gameDAO.createGame(null)
+        );
+    }
+
     void checkClear(String statement) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             try (var ps = conn.prepareStatement(statement)) {
                 var rs = ps.executeQuery(statement);
                 Assertions.assertFalse(rs.next());
+            }
+        } catch (SQLException e ) {
+            throw new DataAccessException("clear error");
+        }
+    }
+
+    void checkNotClear(String statement) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var ps = conn.prepareStatement(statement)) {
+                var rs = ps.executeQuery(statement);
+                Assertions.assertTrue(rs.next());
+            }
+        } catch (SQLException e ) {
+            throw new DataAccessException("clear error");
+        }
+    }
+    // maybe remove
+    void checkError(String statement) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var ps = conn.prepareStatement(statement)) {
+                Assertions.assertThrows(DatabaseAccessException.class, () ->
+                                ps.executeQuery(statement)
+                        );
             }
         } catch (SQLException e ) {
             throw new DataAccessException("clear error");
