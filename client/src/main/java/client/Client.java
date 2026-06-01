@@ -1,8 +1,10 @@
 package client;
 
+import request.CreateGameRequest;
 import request.LoginRequest;
 import request.LogoutRequest;
 import request.RegisterRequest;
+import result.CreateGameResult;
 import result.LoginResult;
 import result.RegisterResult;
 
@@ -57,6 +59,7 @@ public class Client { // implements NotificationHandler
                 return switch (command) {
                     case "logout", "o" -> logout();
                     case "quit", "q" -> "quit";
+                    case "create", "c" -> createGame(params);
                     case "clear", "d" -> clear();
                     default -> help();
                 };
@@ -101,6 +104,14 @@ public class Client { // implements NotificationHandler
         authToken = null;
         return "logout success!";
     }
+    private String createGame(String... params) {
+        if (params.length == 1) {
+        server.createGame(new CreateGameRequest(params[0]), authToken); // change to not void to access gameID
+        return "success!";
+        }
+        return help();
+    }
+
 
     private String clear() {
         server.clear();
