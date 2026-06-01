@@ -1,10 +1,8 @@
 package client;
 
+import chess.ChessGame;
 import model.GameData;
-import request.CreateGameRequest;
-import request.LoginRequest;
-import request.LogoutRequest;
-import request.RegisterRequest;
+import request.*;
 import result.CreateGameResult;
 import result.ListGameResult;
 import result.LoginResult;
@@ -19,10 +17,9 @@ import static ui.EscapeSequences.*;
 public class Client { // implements NotificationHandler
     private final ServerFacade server;
     private String authToken;
-    private boolean LOGGEDIN;
     public Client(String serverURL) {
         server = new ServerFacade(serverURL);
-        LOGGEDIN = false;
+        authToken = null;
     }
     public void run() {
         // prompt here
@@ -49,7 +46,7 @@ public class Client { // implements NotificationHandler
             String[] tokens = line.toLowerCase().split(" ");
             String command = (tokens.length > 0) ? tokens[0] : "help";
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
-            if (!LOGGEDIN) {
+            if (authToken != null) {
             return switch (command) { //not logged in
                 case "register", "r" -> register(params);
                 case "login", "l" -> login(params);
@@ -64,6 +61,7 @@ public class Client { // implements NotificationHandler
                     case "quit", "q" -> "quit";
                     case "create", "c" -> createGame(params);
                     case "list", "i" -> listGame();
+                    case "join", "j" -> joinGame(params);
                     case "clear", "d" -> clear();
                     default -> help();
                 };
@@ -76,7 +74,6 @@ public class Client { // implements NotificationHandler
 
     private String register(String... params) {
         if (params.length == 3) {
-            LOGGEDIN = true;
             RegisterResult result = server.register(new RegisterRequest(params[0], params[1], params[2]));
             authToken = result.authToken();
             return String.format("""
@@ -89,7 +86,6 @@ public class Client { // implements NotificationHandler
 
     private String login(String... params) {
         if (params.length == 2) {
-            LOGGEDIN = true;
             LoginResult result = server.login(new LoginRequest(params[0], params[1]));
             authToken = result.authToken();
             return String.format("""
@@ -100,7 +96,6 @@ public class Client { // implements NotificationHandler
         return help();
     }
     private String logout() {
-        LOGGEDIN = false;
         if (authToken == null) {
             throw new ResponseException("no authToken found");
         }
@@ -133,6 +128,19 @@ public class Client { // implements NotificationHandler
         }
         return output;
     }
+    private String joinGame(String... params) {
+        if (params.length == 2) {
+            int gameID = Integer.parseInt(params[1]);
+            ChessGame.TeamColor player_color = (params[0].equals("white")) ? ChessGame.TeamColor.WHITE :
+                    (params[0].equals("black")) ? ChessGame.TeamColor.BLACK : null;
+            if (player_color == null) {
+                return help();
+            }
+            server.joinGame(new JoinGameRequest(player_color, gameID), authToken);
+            return "joined game successfully!";
+        }
+        return help();
+    }
 
 
     private String clear() {
@@ -140,7 +148,7 @@ public class Client { // implements NotificationHandler
         return "cleared";
     }
     private String help() {
-        if (!LOGGEDIN) {
+        if (authToken == null) {
             return """
                     "register" or "r" <username> <password> <email>
                     "login" or "l" <username> <password>
@@ -151,7 +159,7 @@ public class Client { // implements NotificationHandler
                     "logout" or "o"
                     "list" or "i"
                     "create" or "c" <game name>
-                    "join" or "j" <player color> <gameID>
+                    "join" or "j" <player color (white/black)> <game number>
                     "clear" or "d"
                     "quit" or "q"
                     """;

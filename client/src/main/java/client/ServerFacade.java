@@ -3,10 +3,7 @@ package client;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import model.GameData;
-import request.CreateGameRequest;
-import request.LoginRequest;
-import request.LogoutRequest;
-import request.RegisterRequest;
+import request.*;
 import result.CreateGameResult;
 import result.ListGameResult;
 import result.LoginResult;
@@ -51,6 +48,11 @@ public class ServerFacade {
         var request = buildRequest("POST", "/game", createGameRequest, authToken);
         var response = sendRequest(request);
         handleResponse(response, CreateGameResult.class);
+    }
+    public void joinGame(JoinGameRequest joinGameRequest, String authToken) {
+        var request = buildRequest("POST", "/game", joinGameRequest, authToken);
+        var response = sendRequest(request);
+        handleResponse(response, null);
     }
     public void clear() {
         var request = buildRequest("DELETE", "/db", null, null);
