@@ -3,7 +3,6 @@ package client;
 import chess.ChessGame;
 import model.GameData;
 import request.*;
-import result.CreateGameResult;
 import result.ListGameResult;
 import result.LoginResult;
 import result.RegisterResult;
@@ -14,12 +13,14 @@ import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
 
-public class Client { // implements NotificationHandler
+public class Client extends ChessClient {
     private final ServerFacade server;
     private String authToken;
+    private boolean inGame;
     public Client(String serverURL) {
         server = new ServerFacade(serverURL);
         authToken = null;
+        inGame = false;
     }
     public void run() {
         // prompt here
@@ -27,6 +28,9 @@ public class Client { // implements NotificationHandler
         Scanner scanner = new Scanner(System.in);
         var result = "";
         while (!result.equals("quit")) {
+            if (inGame) {
+                displayGame();
+            }
             printPrompt();
             String line = scanner.nextLine();
 
@@ -84,7 +88,6 @@ public class Client { // implements NotificationHandler
         }
         return help();
     }
-
     private String login(String... params) {
         if (params.length == 2) {
             LoginResult result = server.login(new LoginRequest(params[0], params[1]));
@@ -138,11 +141,11 @@ public class Client { // implements NotificationHandler
                 return help();
             }
             server.joinGame(new JoinGameRequest(player_color, gameID), authToken);
+            inGame = true;
             return "joined game successfully!";
         }
         return help();
     }
-
 
     private String clear() {
         server.clear();
