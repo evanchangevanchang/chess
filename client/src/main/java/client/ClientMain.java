@@ -8,7 +8,7 @@ public class ClientMain {
         System.out.println("♕ 240 Chess Client: " + piece);
 
         try {
-           new Client().run();
+           new Client("http://localhost:8080").run();
 
         } catch (Throwable ex) {
             System.out.printf("Unable to start server: %s", ex.getMessage());
