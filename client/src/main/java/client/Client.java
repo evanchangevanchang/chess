@@ -1,14 +1,17 @@
 package client;
 
+import model.GameData;
 import request.CreateGameRequest;
 import request.LoginRequest;
 import request.LogoutRequest;
 import request.RegisterRequest;
 import result.CreateGameResult;
+import result.ListGameResult;
 import result.LoginResult;
 import result.RegisterResult;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
@@ -60,6 +63,7 @@ public class Client { // implements NotificationHandler
                     case "logout", "o" -> logout();
                     case "quit", "q" -> "quit";
                     case "create", "c" -> createGame(params);
+                    case "list", "i" -> listGame();
                     case "clear", "d" -> clear();
                     default -> help();
                 };
@@ -110,6 +114,24 @@ public class Client { // implements NotificationHandler
         return "success!";
         }
         return help();
+    }
+    private String listGame() {
+        ListGameResult listGameResult = server.listGames(authToken);
+        Collection<GameData> games = listGameResult.games();
+        if (games == null) {
+            return "no games found!";
+        }
+        String output = "";
+        int gameNo = 1;
+        for (GameData game : games) {
+            output += "number: " + gameNo +
+                "\ngame name: " + game.gameName() +
+                "\nwhite username: " + game.whiteUsername() +
+                "\nblack username: " + game.blackUsername() +
+                    "\n";
+            gameNo++;
+        }
+        return output;
     }
 
 

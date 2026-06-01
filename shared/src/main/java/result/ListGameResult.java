@@ -5,6 +5,6 @@ import model.GameData;
 import java.util.Collection;
 
 public record ListGameResult(
-        Collection<GameData> gameDataCollection
+        Collection<GameData> games
 ) {
 }

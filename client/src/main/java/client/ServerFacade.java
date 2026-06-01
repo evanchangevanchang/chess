@@ -41,10 +41,10 @@ public class ServerFacade {
         var response = sendRequest(request);
         handleResponse(response, null);
     }
-    public Collection<GameData> listGames(String authToken) {
+    public ListGameResult listGames(String authToken) {
         var request = buildRequest("GET", "/game", null, authToken);
         var response = sendRequest(request);
-        var type = new TypeToken<Collection<GameData>>(){}.getType();
+        System.out.println(response.body());
         return handleResponse(response, ListGameResult.class);
     }
     public void createGame(CreateGameRequest createGameRequest, String authToken) {
