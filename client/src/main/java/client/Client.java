@@ -1,5 +1,6 @@
 package client;
 
+import request.LogoutRequest;
 import request.RegisterRequest;
 import result.RegisterResult;
 
@@ -10,6 +11,7 @@ import static ui.EscapeSequences.*;
 
 public class Client { // implements NotificationHandler
     private final ServerFacade server;
+    private String authToken;
     private boolean LOGGEDIN;
     public Client(String serverURL) {
         server = new ServerFacade(serverURL);
@@ -40,11 +42,22 @@ public class Client { // implements NotificationHandler
             String[] tokens = line.toLowerCase().split(" ");
             String command = (tokens.length > 0) ? tokens[0] : "help";
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
-            return switch (command) {
+            if (!LOGGEDIN) {
+            return switch (command) { //not logged in
                 case "register", "r" -> register(params);
                 case "quit", "q" -> "quit";
+                case "clear", "d" -> clear();
                 default -> help();
             };
+
+            } else { // logged in
+                return switch (command) {
+                    case "logout", "o" -> logout();
+                    case "quit", "q" -> "quit";
+                    case "clear", "d" -> clear();
+                    default -> help();
+                };
+            }
 
         } catch (ResponseException e) {
             return e.getMessage();
@@ -55,12 +68,28 @@ public class Client { // implements NotificationHandler
         if (params.length == 3) {
             LOGGEDIN = true;
             RegisterResult result = server.register(new RegisterRequest(params[0], params[1], params[2]));
+            authToken = result.authToken();
             return String.format("""
                     success!
                     username: %s
-                    """, result.username());
+                    authToken: %s
+                    """, result.username(), authToken);
         }
         return help();
+    }
+    private String logout() {
+        LOGGEDIN = false;
+        if (authToken == null) {
+            throw new ResponseException("no authToken found");
+        }
+        server.logout(new LogoutRequest(authToken));
+        authToken = null;
+        return "logout success!";
+    }
+
+    private String clear() {
+        server.clear();
+        return "cleared";
     }
     private String help() {
         if (!LOGGEDIN) {

@@ -44,7 +44,11 @@ public class ServerFacade {
         var type = new TypeToken<Collection<GameData>>(){}.getType();
         return handleResponse(response, type);
     }
-
+    public void clear() {
+        var request = buildRequest("DELETE", "/db", null);
+        var response = sendRequest(request);
+        handleResponse(response, null);
+    }
 
 
     private HttpRequest buildRequest(String method, String path, Object body) {
