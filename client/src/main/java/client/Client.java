@@ -41,12 +41,13 @@ public class Client { // implements NotificationHandler
     private void printPrompt() {
         System.out.print("\n" + RESET_BG_COLOR + ">>> " ); // color?
     }
+
     public String eval(String line) {
         try {
             String[] tokens = line.toLowerCase().split(" ");
             String command = (tokens.length > 0) ? tokens[0] : "help";
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
-            if (authToken != null) {
+            if (authToken == null) {
             return switch (command) { //not logged in
                 case "register", "r" -> register(params);
                 case "login", "l" -> login(params);
@@ -113,7 +114,7 @@ public class Client { // implements NotificationHandler
     private String listGame() {
         ListGameResult listGameResult = server.listGames(authToken);
         Collection<GameData> games = listGameResult.games();
-        if (games == null) {
+        if (games.isEmpty()) {
             return "no games found!";
         }
         String output = "";

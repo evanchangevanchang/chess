@@ -26,7 +26,7 @@ public class ChessPiece {
         return Objects.hash(pieceColor, type);
     }
 
-    private final ChessGame.TeamColor pieceColor;
+    private ChessGame.TeamColor pieceColor;
     private ChessPiece.PieceType type;
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
     this.pieceColor = pieceColor;

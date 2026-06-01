@@ -15,6 +15,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Collection;
+import java.util.Map;
 
 public class ServerFacade {
     private final HttpClient client = HttpClient.newHttpClient();
@@ -41,7 +42,6 @@ public class ServerFacade {
     public ListGameResult listGames(String authToken) {
         var request = buildRequest("GET", "/game", null, authToken);
         var response = sendRequest(request);
-        System.out.println(response.body());
         return handleResponse(response, ListGameResult.class);
     }
     public void createGame(CreateGameRequest createGameRequest, String authToken) {
@@ -50,7 +50,7 @@ public class ServerFacade {
         handleResponse(response, CreateGameResult.class);
     }
     public void joinGame(JoinGameRequest joinGameRequest, String authToken) {
-        var request = buildRequest("POST", "/game", joinGameRequest, authToken);
+        var request = buildRequest("PUT", "/game", joinGameRequest, authToken);
         var response = sendRequest(request);
         handleResponse(response, null);
     }
@@ -93,9 +93,10 @@ public class ServerFacade {
         if (status != 200) {
             var body = response.body();
             if (body != null) {
-                throw new ResponseException(body);
-            }
-            throw new ResponseException("failure: " + status);
+            var json = new Gson().fromJson(body, Map.class);
+            var message = (String) json.get("message");
+            throw new ResponseException(message);
+        }
         }
         if (responseType != null) {
             return new Gson().fromJson(response.body(), responseType); // deserialize
