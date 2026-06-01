@@ -1,7 +1,9 @@
 package client;
 
+import request.LoginRequest;
 import request.LogoutRequest;
 import request.RegisterRequest;
+import result.LoginResult;
 import result.RegisterResult;
 
 import java.util.Arrays;
@@ -19,7 +21,7 @@ public class Client { // implements NotificationHandler
     }
     public void run() {
         // prompt here
-
+        System.out.print("CHESS!!!!!!\n" + help());
         Scanner scanner = new Scanner(System.in);
         var result = "";
         while (!result.equals("quit")) {
@@ -45,6 +47,7 @@ public class Client { // implements NotificationHandler
             if (!LOGGEDIN) {
             return switch (command) { //not logged in
                 case "register", "r" -> register(params);
+                case "login", "l" -> login(params);
                 case "quit", "q" -> "quit";
                 case "clear", "d" -> clear();
                 default -> help();
@@ -72,8 +75,20 @@ public class Client { // implements NotificationHandler
             return String.format("""
                     success!
                     username: %s
-                    authToken: %s
-                    """, result.username(), authToken);
+                    """, result.username());
+        }
+        return help();
+    }
+
+    private String login(String... params) {
+        if (params.length == 2) {
+            LOGGEDIN = true;
+            LoginResult result = server.login(new LoginRequest(params[0], params[1]));
+            authToken = result.authToken();
+            return String.format("""
+                    success!
+                    username: %s
+                    """, result.username());
         }
         return help();
     }
