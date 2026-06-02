@@ -7,15 +7,12 @@ import chess.ChessPiece;
 import chess.ChessPosition;
 
 import java.io.PrintStream;
-import java.io.StringBufferInputStream;
 
 import static chess.ChessGame.TeamColor.*;
 import static ui.EscapeSequences.*;
 
 public class ChessClient {
-
     private static final int BOARD_LENGTH = 8;
-
     private boolean direction;
 
     public ChessClient() {
@@ -85,7 +82,7 @@ public class ChessClient {
     }
 
     private final String[] edges = {
-            EMPTY, " a ", " b ", " c ", " d ", " e ", " f "," g "," h ",EMPTY
+            EMPTY, " a ", " b ", "  c ", " d ", " e ", "  f "," g "," h ",EMPTY
     };
 
     private void drawPiece(PrintStream out, ChessBoard chessBoard, int row, int col) {
