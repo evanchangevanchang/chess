@@ -24,6 +24,7 @@ public class ServerFacade {
     public ServerFacade(String url) {
         serverURL = url;
     }
+
     public RegisterResult register(RegisterRequest registerRequest) {
         var request = buildRequest("POST", "/user", registerRequest, null);
         var response = sendRequest(request);
@@ -59,7 +60,6 @@ public class ServerFacade {
         var response = sendRequest(request);
         handleResponse(response, null);
     }
-
 
     private HttpRequest buildRequest(String method, String path, Object body, String authToken) {
         var request = HttpRequest.newBuilder()

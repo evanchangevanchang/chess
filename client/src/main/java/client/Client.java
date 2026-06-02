@@ -13,14 +13,20 @@ import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
 
-public class Client extends ChessClient {
+public class Client  {
     private final ServerFacade server;
     private String authToken;
     private boolean inGame;
+    private ChessGame.TeamColor boardColor;
+    private final ChessClient chessClient; // final?
+    private ChessGame game; // figure out how to update game
+
     public Client(String serverURL) {
         server = new ServerFacade(serverURL);
         authToken = null;
         inGame = false;
+        chessClient = new ChessClient();
+        game = new ChessGame(); // just for set up
     }
     public void run() {
         // prompt here
@@ -29,7 +35,7 @@ public class Client extends ChessClient {
         var result = "";
         while (!result.equals("quit")) {
             if (inGame) {
-                displayGame();
+                chessClient.displayGame(boardColor, game); // if game joined, display game
             }
             printPrompt();
             String line = scanner.nextLine();
@@ -135,13 +141,14 @@ public class Client extends ChessClient {
     private String joinGame(String... params) {
         if (params.length == 2) {
             int gameID = Integer.parseInt(params[1]);
-            ChessGame.TeamColor player_color = (params[0].equals("white")) ? ChessGame.TeamColor.WHITE :
+            ChessGame.TeamColor playerColor = (params[0].equals("white")) ? ChessGame.TeamColor.WHITE :
                     (params[0].equals("black")) ? ChessGame.TeamColor.BLACK : null;
-            if (player_color == null) {
+            if (playerColor == null) {
                 return help();
             }
-            server.joinGame(new JoinGameRequest(player_color, gameID), authToken);
+            server.joinGame(new JoinGameRequest(playerColor, gameID), authToken);
             inGame = true;
+            boardColor = playerColor;
             return "joined game successfully!";
         }
         return help();
