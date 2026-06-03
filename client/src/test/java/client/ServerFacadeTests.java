@@ -2,6 +2,8 @@ package client;
 
 import org.junit.jupiter.api.*;
 import request.CreateGameRequest;
+import request.LoginRequest;
+import request.LogoutRequest;
 import request.RegisterRequest;
 import result.RegisterResult;
 import server.Server;
@@ -49,6 +51,37 @@ public class ServerFacadeTests {
         serverFacade.clear();
         result.RegisterResult regResult = serverFacade.register(new RegisterRequest("mae", "p", "email"));
         Assertions.assertNotNull(regResult);
+    }
+    @Test
+    public void logoutFail() {
+        serverFacade.clear();
+        serverFacade.register(new RegisterRequest("mae", "p", "email"));
+        Assertions.assertThrows(Exception.class, () ->
+        serverFacade.logout(new LogoutRequest(null)));
+    }
+    @Test
+    public void logoutSuccess() {
+        serverFacade.clear();
+        result.RegisterResult regResult = serverFacade.register(new RegisterRequest("mae", "p", "email"));
+        serverFacade.logout(new LogoutRequest(regResult.authToken()));
+        Assertions.assertThrows(Exception.class, () ->
+        serverFacade.listGames(regResult.authToken())); // cannot list games without authToken
+    }
+    @Test
+    public void loginFail() {
+        serverFacade.clear();
+        result.RegisterResult regResult = serverFacade.register(new RegisterRequest("mae", "p", "email"));
+        serverFacade.logout(new LogoutRequest(regResult.authToken()));
+        Assertions.assertThrows(Exception.class, () ->
+        serverFacade.login(new LoginRequest("mae", "fart")));
+    }
+    @Test
+    public void loginSuccess() {
+        serverFacade.clear();
+        result.RegisterResult regResult = serverFacade.register(new RegisterRequest("mae", "p", "email"));
+        serverFacade.logout(new LogoutRequest(regResult.authToken()));
+        Assertions.assertDoesNotThrow(() ->
+        serverFacade.login(new LoginRequest("mae", "p")));
     }
 
 }
