@@ -83,5 +83,33 @@ public class ServerFacadeTests {
         Assertions.assertDoesNotThrow(() ->
         serverFacade.login(new LoginRequest("mae", "p")));
     }
+    @Test
+    public void createSuccess() {
+        serverFacade.clear();
+        result.RegisterResult regResult = serverFacade.register(new RegisterRequest("mae", "p", "email"));
+        serverFacade.createGame(new CreateGameRequest("mae_is_cool"), regResult.authToken());
+        Assertions.assertNotNull(serverFacade.listGames(regResult.authToken()));
+    }
+    @Test
+    public void createFail() {
+        serverFacade.clear();
+        result.RegisterResult regResult = serverFacade.register(new RegisterRequest("mae", "p", "email"));
+        Assertions.assertThrows(Exception.class, () ->
+        serverFacade.createGame(new CreateGameRequest(null), regResult.authToken()));
+    }
+    @Test
+    public void listSuccess() {
+        serverFacade.clear();
+        result.RegisterResult regResult = serverFacade.register(new RegisterRequest("mae", "p", "email"));
+        serverFacade.createGame(new CreateGameRequest("mae_suckz"), regResult.authToken());
+        Assertions.assertNotNull(serverFacade.listGames(regResult.authToken()));
+    }
+    @Test
+    public void listFail() {
+        serverFacade.clear();
+        serverFacade.register(new RegisterRequest("mae", "p", "email"));
+        Assertions.assertThrows(Exception.class, () ->
+                Assertions.assertNotNull(serverFacade.listGames(null)));
+    }
 
 }
