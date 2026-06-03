@@ -20,6 +20,7 @@ public class Client  {
     private ChessGame.TeamColor boardColor;
     private final ChessClient chessClient; // final?
     private ChessGame game; // figure out how to update game
+    private int currentGameID; // save gameID to display chosen game
 
     public Client(String serverURL) {
         server = new ServerFacade(serverURL);
@@ -27,6 +28,7 @@ public class Client  {
         inGame = false;
         chessClient = new ChessClient();
         game = new ChessGame(); // just for set up
+        currentGameID = 1;
     }
     public void run() {
         // prompt here
@@ -68,11 +70,12 @@ public class Client  {
 
             } else { // logged in
                 return switch (command) {
-                    case "logout", "o" -> logout();
+                    case "logout", "l" -> logout();
                     case "quit", "q" -> "quit";
                     case "create", "c" -> createGame(params);
                     case "list", "i" -> listGame();
                     case "join", "j" -> joinGame(params);
+                    case "observe", "o" -> observeGame(params);
                     case "clear", "d" -> clear();
                     default -> help();
                 };
@@ -140,6 +143,7 @@ public class Client  {
     }
     private String joinGame(String... params) {
         if (params.length == 2) {
+            try {
             int gameID = Integer.parseInt(params[1]);
             ChessGame.TeamColor playerColor = (params[0].equals("white")) ? ChessGame.TeamColor.WHITE :
                     (params[0].equals("black")) ? ChessGame.TeamColor.BLACK : null;
@@ -149,7 +153,26 @@ public class Client  {
             server.joinGame(new JoinGameRequest(playerColor, gameID), authToken);
             inGame = true;
             boardColor = playerColor;
+            currentGameID = gameID;
             return "joined game successfully!";
+            }
+            catch (NumberFormatException e) {
+                return "not a number";
+            }
+        }
+        return help();
+    }
+    private String observeGame(String... params) {
+        if (params.length == 1) {
+            try {
+                int gameID = Integer.parseInt(params[0]);
+                inGame = true;
+                boardColor = ChessGame.TeamColor.WHITE;
+                currentGameID = gameID;
+                return "observing game " + gameID;
+            } catch (Exception e) {
+                return "not a number";
+            }
         }
         return help();
     }
@@ -163,6 +186,7 @@ public class Client  {
             return """
                     "register" or "r" <username> <password> <email>
                     "login" or "l" <username> <password>
+                    "help"
                     "quit" or "q"
                     """;
         }
@@ -172,6 +196,7 @@ public class Client  {
                     "create" or "c" <game name>
                     "join" or "j" <player color (white/black)> <game number>
                     "clear" or "d"
+                    "help"
                     "quit" or "q"
                     """;
     }
