@@ -1,10 +1,8 @@
 package client;
 
+import chess.ChessGame;
 import org.junit.jupiter.api.*;
-import request.CreateGameRequest;
-import request.LoginRequest;
-import request.LogoutRequest;
-import request.RegisterRequest;
+import request.*;
 import result.RegisterResult;
 import server.Server;
 
@@ -33,7 +31,8 @@ public class ServerFacadeTests {
     @Test
     public void clearTest() {
         serverFacade.clear();
-        result.RegisterResult regResult = serverFacade.register(new RegisterRequest("mae", "p", "email"));
+        result.RegisterResult regResult = serverFacade.register(
+                new RegisterRequest("mae", "p", "email"));
         String authToken = regResult.authToken();
         serverFacade.clear();
         Assertions.assertThrows(Exception.class, () ->
@@ -49,7 +48,8 @@ public class ServerFacadeTests {
     @Test
     public void regSuccess() {
         serverFacade.clear();
-        result.RegisterResult regResult = serverFacade.register(new RegisterRequest("mae", "p", "email"));
+        result.RegisterResult regResult = serverFacade.register(
+                new RegisterRequest("mae", "p", "email"));
         Assertions.assertNotNull(regResult);
     }
     @Test
@@ -62,7 +62,8 @@ public class ServerFacadeTests {
     @Test
     public void logoutSuccess() {
         serverFacade.clear();
-        result.RegisterResult regResult = serverFacade.register(new RegisterRequest("mae", "p", "email"));
+        result.RegisterResult regResult = serverFacade.register(
+                new RegisterRequest("mae", "p", "email"));
         serverFacade.logout(new LogoutRequest(regResult.authToken()));
         Assertions.assertThrows(Exception.class, () ->
         serverFacade.listGames(regResult.authToken())); // cannot list games without authToken
@@ -70,7 +71,8 @@ public class ServerFacadeTests {
     @Test
     public void loginFail() {
         serverFacade.clear();
-        result.RegisterResult regResult = serverFacade.register(new RegisterRequest("mae", "p", "email"));
+        result.RegisterResult regResult = serverFacade.register(
+                new RegisterRequest("mae", "p", "email"));
         serverFacade.logout(new LogoutRequest(regResult.authToken()));
         Assertions.assertThrows(Exception.class, () ->
         serverFacade.login(new LoginRequest("mae", "fart")));
@@ -78,7 +80,8 @@ public class ServerFacadeTests {
     @Test
     public void loginSuccess() {
         serverFacade.clear();
-        result.RegisterResult regResult = serverFacade.register(new RegisterRequest("mae", "p", "email"));
+        result.RegisterResult regResult = serverFacade.register(
+                new RegisterRequest("mae", "p", "email"));
         serverFacade.logout(new LogoutRequest(regResult.authToken()));
         Assertions.assertDoesNotThrow(() ->
         serverFacade.login(new LoginRequest("mae", "p")));
@@ -86,21 +89,24 @@ public class ServerFacadeTests {
     @Test
     public void createSuccess() {
         serverFacade.clear();
-        result.RegisterResult regResult = serverFacade.register(new RegisterRequest("mae", "p", "email"));
+        result.RegisterResult regResult = serverFacade.register(
+                new RegisterRequest("mae", "p", "email"));
         serverFacade.createGame(new CreateGameRequest("mae_is_cool"), regResult.authToken());
         Assertions.assertNotNull(serverFacade.listGames(regResult.authToken()));
     }
     @Test
     public void createFail() {
         serverFacade.clear();
-        result.RegisterResult regResult = serverFacade.register(new RegisterRequest("mae", "p", "email"));
+        result.RegisterResult regResult = serverFacade.register(
+                new RegisterRequest("mae", "p", "email"));
         Assertions.assertThrows(Exception.class, () ->
         serverFacade.createGame(new CreateGameRequest(null), regResult.authToken()));
     }
     @Test
     public void listSuccess() {
         serverFacade.clear();
-        result.RegisterResult regResult = serverFacade.register(new RegisterRequest("mae", "p", "email"));
+        result.RegisterResult regResult = serverFacade.register(
+                new RegisterRequest("mae", "p", "email"));
         serverFacade.createGame(new CreateGameRequest("mae_suckz"), regResult.authToken());
         Assertions.assertNotNull(serverFacade.listGames(regResult.authToken()));
     }
@@ -110,6 +116,26 @@ public class ServerFacadeTests {
         serverFacade.register(new RegisterRequest("mae", "p", "email"));
         Assertions.assertThrows(Exception.class, () ->
                 Assertions.assertNotNull(serverFacade.listGames(null)));
+    }
+    @Test
+    public void joinSuccess() {
+        serverFacade.clear();
+        result.RegisterResult regResult = serverFacade.register(
+                new RegisterRequest("mae", "p", "email"));
+        serverFacade.createGame(new CreateGameRequest("mae_suckz"), regResult.authToken());
+        Assertions.assertDoesNotThrow(() ->
+        serverFacade.joinGame(new JoinGameRequest(ChessGame.TeamColor.WHITE, 1), regResult.authToken()));
+    }
+    @Test
+    public void joinFail() {
+        serverFacade.clear();
+        result.RegisterResult regResult = serverFacade.register(
+                new RegisterRequest("mae", "p", "email"));
+        serverFacade.createGame(new CreateGameRequest("mae_suckz"), regResult.authToken());
+        serverFacade.joinGame(new JoinGameRequest(ChessGame.TeamColor.WHITE, 1), regResult.authToken());
+        Assertions.assertThrows(Exception.class, () ->
+                serverFacade.joinGame(new JoinGameRequest(ChessGame.TeamColor.WHITE, 1),
+                        regResult.authToken())); // try to join the same color
     }
 
 }
