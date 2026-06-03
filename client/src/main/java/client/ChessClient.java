@@ -82,7 +82,7 @@ public class ChessClient {
     }
 
     private final String[] edges = {
-            EMPTY, " a ", " b ", "  c ", " d ", " e ", "  f "," g "," h ",EMPTY
+            EMPTY, " a ", " b ", "  c ", " d ", "  e ", "  f "," g ","  h ", "   "
     };
 
     private void drawPiece(PrintStream out, ChessBoard chessBoard, int row, int col) {

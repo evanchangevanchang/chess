@@ -38,4 +38,17 @@ public class ServerFacadeTests {
                 serverFacade.listGames(authToken)); // no authToken found
     }
 
+    @Test
+    public void regFail() {
+        serverFacade.clear();
+        Assertions.assertThrows(Exception.class, () ->
+        serverFacade.register(new RegisterRequest(null,null,null)));
+    }
+    @Test
+    public void regSuccess() {
+        serverFacade.clear();
+        result.RegisterResult regResult = serverFacade.register(new RegisterRequest("mae", "p", "email"));
+        Assertions.assertNotNull(regResult);
+    }
+
 }
