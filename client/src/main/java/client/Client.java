@@ -7,6 +7,7 @@ import result.ListGameResult;
 import result.LoginResult;
 import result.RegisterResult;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Scanner;
@@ -166,12 +167,20 @@ public class Client  {
         if (params.length == 1) {
             try {
                 int gameID = Integer.parseInt(params[0]);
+                ListGameResult listGameResult = server.listGames(authToken);
+                ArrayList<GameData> games = listGameResult.games();
+                var selectedGame = games.get(gameID - 1);
+                if (selectedGame == null) {
+                    return "no gameData";
+                }
                 inGame = true;
                 boardColor = ChessGame.TeamColor.WHITE;
                 currentGameID = gameID;
                 return "observing game " + gameID;
-            } catch (Exception e) {
+            } catch (NumberFormatException e) {
                 return "not a number";
+            } catch (IndexOutOfBoundsException e) {
+                return "game not found";
             }
         }
         return help();
@@ -195,6 +204,7 @@ public class Client  {
                     "list" or "i"
                     "create" or "c" <game name>
                     "join" or "j" <player color (white/black)> <game number>
+                    "observe" or "o"
                     "clear" or "d"
                     "help"
                     "quit" or "q"

@@ -35,7 +35,7 @@ public class ChessClient {
         for (int row = 1; row < BOARD_LENGTH + 1; row++) {
             out.print("\n");
             out.print(SET_BG_COLOR_BLACK);
-            out.print(" " + row + " ");
+            out.print(" " + (9 - row) + " ");
             for (int col = 1; col < BOARD_LENGTH + 1; col++) {
                 if ((row + col) % 2 == 1) {
                     out.print(SET_BG_COLOR_DARK_GREY);
@@ -45,7 +45,7 @@ public class ChessClient {
                 drawPiece(out, chessBoard, row, col);
             }
             out.print(SET_BG_COLOR_BLACK);
-            out.print(" " + row + " ");
+            out.print(" " + (9 - row) + " ");
             out.print(RESET_BG_COLOR);
         }
         drawEdge(out);
@@ -55,7 +55,7 @@ public class ChessClient {
         for (int row = BOARD_LENGTH; row > 0; row--) {
             out.print("\n");
             out.print(SET_BG_COLOR_BLACK);
-            out.print(" " + row + " ");
+            out.print(" " + (9 - row) + " ");
             for (int col = BOARD_LENGTH; col > 0; col--) {
                 if ((row + col) % 2 == 1) {
                     out.print(SET_BG_COLOR_DARK_GREY);
@@ -65,7 +65,7 @@ public class ChessClient {
                 drawPiece(out, chessBoard, row, col);
             }
             out.print(SET_BG_COLOR_BLACK);
-            out.print(" " + row + " ");
+            out.print(" " + (9 - row) + " ");
             out.print(RESET_BG_COLOR);
         }
         drawEdge(out);

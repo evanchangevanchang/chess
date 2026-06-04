@@ -2,9 +2,9 @@ package result;
 
 import model.GameData;
 
-import java.util.Collection;
+import java.util.ArrayList;
 
 public record ListGameResult(
-        Collection<GameData> games
+        ArrayList<GameData> games
 ) {
 }
