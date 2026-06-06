@@ -15,6 +15,7 @@ import service.AuthService;
 import service.GameService;
 import service.Service;
 import service.UserService;
+import websocket.WebSocketHandler;
 
 import java.util.Collection;
 import java.util.Map;
@@ -24,8 +25,10 @@ public class Server {
     private final Javalin javalin;
 
     private final Gson serializer = new Gson();
+    private final WebSocketHandler webSocketHandler;
 
     public Server() {
+        webSocketHandler = new WebSocketHandler();
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
 
         // Register your endpoints and exception handlers here.
@@ -41,6 +44,11 @@ public class Server {
         javalin.post("/game", this::createGameHandler);
         javalin.put("/game", this::joinGameHandler);
         javalin.get("/game", this::listGameHandler);
+        javalin.ws("/ws", ws -> {
+            ws.onClose(webSocketHandler);
+            ws.onMessage(webSocketHandler);
+            ws.onClose(webSocketHandler);
+        });
     }
 
     private void dataAccessExceptionHandler(DataAccessException e, Context context) {
@@ -77,9 +85,9 @@ public class Server {
     private void loginHandler(Context context) throws DataAccessException {
         UserService userService = new UserService();
         LoginRequest loginRequest = serializer.fromJson(context.body(), LoginRequest.class);
-            LoginResult loginResult = userService.login(loginRequest);
-            context.status(200);
-            context.json(new Gson().toJson(loginResult));
+        LoginResult loginResult = userService.login(loginRequest);
+        context.status(200);
+        context.json(new Gson().toJson(loginResult));
     }
 
     private void logoutHandler(Context context) throws DataAccessException {
