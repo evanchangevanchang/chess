@@ -1,11 +1,14 @@
 package client;
 
 import chess.ChessGame;
+import client.websocket.NotificationHandler;
+import client.websocket.WebSocketFacade;
 import model.GameData;
 import request.*;
 import result.ListGameResult;
 import result.LoginResult;
 import result.RegisterResult;
+import websocket.messages.ServerMessage;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,7 +17,7 @@ import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
 
-public class Client  {
+public class Client implements NotificationHandler {
     private final ServerFacade server;
     private String authToken;
     private boolean inGame;
@@ -23,6 +26,8 @@ public class Client  {
     private ChessGame game; // figure out how to update game
     private int currentGameID; // save gameID to display chosen game
 
+    private final WebSocketFacade ws;
+
     public Client(String serverURL) {
         server = new ServerFacade(serverURL);
         authToken = null;
@@ -30,6 +35,7 @@ public class Client  {
         chessClient = new ChessClient();
         game = new ChessGame(); // just for set up
         currentGameID = 1;
+        ws = new WebSocketFacade(serverURL, this);
     }
     public void run() {
         // prompt here
@@ -212,4 +218,9 @@ public class Client  {
     }
 
 
+    @Override
+    public void notify(ServerMessage serverMessage) {
+        System.out.println(SET_TEXT_COLOR_RED +  serverMessage.getMessage());
+        printPrompt();
+    }
 }
