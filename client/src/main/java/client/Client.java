@@ -6,6 +6,7 @@ import chess.ChessPiece;
 import chess.ChessPosition;
 import client.websocket.NotificationHandler;
 import client.websocket.WebSocketFacade;
+import com.google.gson.Gson;
 import model.GameData;
 import request.*;
 import result.ListGameResult;
@@ -23,10 +24,11 @@ import static ui.EscapeSequences.*;
 public class Client implements NotificationHandler {
     private final ServerFacade server;
     private String authToken;
-    private boolean inGame;
+    private boolean inGame; // display board if join or observe
     private ChessGame.TeamColor boardColor;
     private final ChessClient chessClient; // final?
-    private ChessGame game; // figure out how to update game
+
+    private ChessGame game; // starts as default board, updates every notification
     private int currentGameID; // save gameID to display chosen game
 
     private final WebSocketFacade ws;
@@ -91,8 +93,14 @@ public class Client implements NotificationHandler {
                 };
             } else { // in game
                 return switch (command) {
-                    case "leave", "l" -> ws.leave(authToken, currentGameID);
-                    case "quit", "q" -> "quit";
+                    case "leave", "l" -> {
+                        inGame = false;
+                        yield ws.leave(authToken, currentGameID);
+                    }
+                    case "quit", "q" -> {
+                        inGame = false;
+                        yield "quit";
+                    }
                     case "move", "m" -> {
                         ChessMove move = parseMove(params);
                         yield (move != null) ?
@@ -248,6 +256,7 @@ public class Client implements NotificationHandler {
 
     private String clear() {
         server.clear();
+        inGame = false;
         return "cleared";
     }
     private String help() {
@@ -281,7 +290,16 @@ public class Client implements NotificationHandler {
 
     @Override
     public void notify(ServerMessage serverMessage) {
-        System.out.println(SET_TEXT_COLOR_RED +  serverMessage.getMessage());
-        printPrompt();
+        switch (serverMessage.getServerMessageType()) {
+            case NOTIFICATION -> System.out.println(SET_TEXT_COLOR_GREEN +  serverMessage.getMessage());
+            case ERROR -> System.out.println(SET_TEXT_COLOR_RED +  serverMessage.getMessage());
+            case LOAD_GAME -> {
+                // game is passed as a string message
+                GameData gameData = new Gson().fromJson(serverMessage.getMessage(), GameData.class);
+                game = gameData.game();
+            }
+        }
+
+
     }
 }
