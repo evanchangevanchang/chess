@@ -1,6 +1,9 @@
 package client;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPiece;
+import chess.ChessPosition;
 import client.websocket.NotificationHandler;
 import client.websocket.WebSocketFacade;
 import model.GameData;
@@ -75,7 +78,7 @@ public class Client implements NotificationHandler {
                 default -> help();
             };
 
-            } else { // logged in
+            } else if (!inGame) { // logged in
                 return switch (command) {
                     case "logout", "l" -> logout();
                     case "quit", "q" -> "quit";
@@ -83,6 +86,18 @@ public class Client implements NotificationHandler {
                     case "list", "i" -> listGame();
                     case "join", "j" -> joinGame(params);
                     case "observe", "o" -> observeGame(params);
+                    case "clear", "d" -> clear();
+                    default -> help();
+                };
+            } else { // in game
+                return switch (command) {
+                    case "leave", "l" -> ws.leave(authToken, currentGameID);
+                    case "quit", "q" -> "quit";
+                    case "move", "m" -> {
+                        ChessMove move = parseMove(params);
+                        yield (move != null) ?
+                                ws.makeMove(authToken, currentGameID, move) : help();
+                    }
                     case "clear", "d" -> clear();
                     default -> help();
                 };
@@ -192,6 +207,45 @@ public class Client implements NotificationHandler {
         return help();
     }
 
+    private ChessMove parseMove(String... params) {
+        if (params.length == 2 || params.length == 3) {
+            String[] startString = params[0].split("");
+            String[] endString = params[1].split("");
+            if (startString.length != 2 || endString.length != 2) {
+                return null;
+            }
+            int startCol = startString[0].toCharArray()[0] - 'a' + 1;
+            int startRow = startString[1].toCharArray()[0] - '0';
+            int endCol = startString[0].toCharArray()[0] - 'a' + 1;
+            int endRow = startString[1].toCharArray()[0] - '0';
+            if (startCol < 1 || startCol > 8 ||
+                    startRow < 1 || startRow > 8 ||
+                    endCol < 1 || endCol > 8 ||
+                    endRow < 1 || endRow > 8) {
+                return null;
+            }
+            if (params.length == 3) { // allow 3 parameters if piece is a pawn, still gets validated later
+                if (game.getBoard().getPiece(new ChessPosition(startRow, startCol)).getPieceType()
+                        .equals(ChessPiece.PieceType.PAWN)) {
+                    return switch (params[2]) {
+                        case "queen", "q" -> new ChessMove(new ChessPosition(startRow, startCol),
+                                new ChessPosition(endRow, endCol), ChessPiece.PieceType.QUEEN);
+                        case "bishop", "b" -> new ChessMove(new ChessPosition(startRow, startCol),
+                                new ChessPosition(endRow, endCol), ChessPiece.PieceType.BISHOP);
+                        case "knight", "k" -> new ChessMove(new ChessPosition(startRow, startCol),
+                                new ChessPosition(endRow, endCol), ChessPiece.PieceType.KNIGHT);
+                        case "rook", "r" -> new ChessMove(new ChessPosition(startRow, startCol),
+                                new ChessPosition(endRow, endCol), ChessPiece.PieceType.ROOK);
+                        default -> null;
+                    };
+                }
+            }
+            return new ChessMove(new ChessPosition(startRow, startCol),
+                    new ChessPosition(endRow, endCol), null);
+        }
+        return null;
+    }
+
     private String clear() {
         server.clear();
         return "cleared";
@@ -204,9 +258,9 @@ public class Client implements NotificationHandler {
                     "help"
                     "quit" or "q"
                     """;
-        }
-        return """
-                    "logout" or "o"
+        } if (!inGame) {
+            return """
+                    "logout" or "l"
                     "list" or "i"
                     "create" or "c" <game name>
                     "join" or "j" <player color (white/black)> <game number>
@@ -215,6 +269,13 @@ public class Client implements NotificationHandler {
                     "help"
                     "quit" or "q"
                     """;
+        } return """
+                "leave" or "l"
+                "move", "m" <start position (e.g. e4)> <end position> <promotion piece>
+                "clear", "d"
+                "help"
+                "quit", "q"
+                """;
     }
 
 

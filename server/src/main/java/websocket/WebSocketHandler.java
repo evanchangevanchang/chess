@@ -1,6 +1,7 @@
 package websocket;
 
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.*;
 import io.javalin.websocket.*;
@@ -56,13 +57,34 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
 
     }
-    private void makeMove(UserGameCommand userGameCommand, Session session) {
-        try {
-            GameDAO gameDAO = new SQLGameDAO();
-//            gameDAO.updateGame(userGameCommand.getGameID(), );
-        } catch(Exception e) {
+    private void makeMove(UserGameCommand command, Session session) throws IOException, DataAccessException {
+        GameDAO gameDAO = new SQLGameDAO();
+        int gameID = command.getGameID();
+        GameData gameData = gameDAO.getGame(gameID);
+        ChessGame game = gameData.game(); // also checks if gameData is null
 
+        AuthData authData = getAuthData(command, session);
+
+        // check if move is valid
+        if (gameData.game().resigned) {
+            // invalid move error
+            return;
         }
+        String playerTeam = getPlayerTeam(authData, gameData);
+        // check if player is an observer
+        if (playerTeam.equals("OBSERVER")) {
+            // observer dont play error
+            return;
+        } else if (playerTeam.equals("WHITE") && (game.getTeamTurn() != ChessGame.TeamColor.WHITE) ||
+            playerTeam.equals("BLACK") && (game.getTeamTurn() != ChessGame.TeamColor.BLACK)) {
+            // not your turn error
+            return;
+        }
+        command.getMove();
+        // update game
+        // broadcast load game to all clients
+        // check for check, checkmate etc. send a notification
+
     }
     private void leave(UserGameCommand command, Session session) throws IOException, DataAccessException {
         // remove root client
@@ -114,5 +136,14 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             session.getRemote().sendString(new Gson().toJson(serverError));
             throw new IOException("failed to get authData"); // throw an IOException?
         }
+    }
+
+    private String getPlayerTeam(AuthData authData, GameData gameData) {
+        if (gameData.whiteUsername() != null && gameData.whiteUsername().equals(authData.username())) {
+            return "WHITE";
+        } else if (gameData.blackUsername() != null && gameData.blackUsername().equals(authData.username())) {
+            return "BLACK";
+        }
+        return "OBSERVER";
     }
 }
