@@ -14,6 +14,7 @@ public class ChessGame {
 
     private TeamColor currentTurn;
     private ChessBoard board;
+    public boolean resigned;
 
     // castling cannot happen if any of the pieces involved have moved
     private boolean whiteKingMoved;
@@ -29,6 +30,7 @@ public class ChessGame {
         this.board = new ChessBoard();
         this.board.resetBoard();
         this.currentTurn = TeamColor.WHITE;
+        this.resigned = false;
         // all start false
         this.whiteKingMoved = this.blackKingMoved =
                 this.whiteLeftRookMoved = this.whiteRightRookMoved =
