@@ -108,7 +108,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
         // notification what move was made
         String username = authData.username();
-        String moveNotif = username + " has made move: " + move;
+        String moveNotif = String.format("%s has made move %s", username, move);
         sendNotif(gameID, moveNotif, session);
 
         // check for check, checkmate etc. send a notification

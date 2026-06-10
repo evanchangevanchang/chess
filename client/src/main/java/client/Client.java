@@ -134,7 +134,7 @@ public class Client implements NotificationHandler {
                     case "highlight", "h" -> highlight(params);
                     case "redraw", "p" -> {
                         chessClient.displayGame(boardColor, game, null);
-                        yield "redrew board";
+                        yield "\nredrew board";
                     }
                     default -> help();
                 };
