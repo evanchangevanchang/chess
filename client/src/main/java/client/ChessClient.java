@@ -26,7 +26,7 @@ public class ChessClient {
             var moves = board.getPiece(highlightPos).pieceMoves(board, highlightPos);
             for (ChessMove move : moves) {
                 var pos = move.getEndPosition();
-                highlightSpots.add(new ChessPosition(9 - pos.getRow(), pos.getColumn()));
+                highlightSpots.add(new ChessPosition(pos.getRow(), pos.getColumn()));
             }
         }
         if (direction) {
@@ -38,37 +38,37 @@ public class ChessClient {
 
     private void drawWhiteBoard(PrintStream out, ChessBoard chessBoard, Collection<ChessPosition> highlightSpots) {
         drawEdge(out);
-        for (int row = 1; row < BOARD_LENGTH + 1; row++) {
+        for (int row = BOARD_LENGTH; row > 0; row--) {
             out.print("\n");
             out.print(SET_BG_COLOR_BLACK);
-            out.print(" " + (9 - row) + " ");
-            for (int col = 1; col < BOARD_LENGTH + 1; col++) {
+            out.print(" " + row + " ");
+            for (int col = 1; col <= BOARD_LENGTH; col++) {
                 setBGColor(out, chessBoard, highlightSpots, row, col);
             }
             out.print(SET_BG_COLOR_BLACK);
-            out.print(" " + (9 - row) + " ");
+            out.print(" " + row + " ");
             out.print(RESET_BG_COLOR);
         }
         drawEdge(out);
     }
     private void drawBlackBoard(PrintStream out, ChessBoard chessBoard, Collection<ChessPosition> highlightSpots) {
         drawEdge(out);
-        for (int row = BOARD_LENGTH; row > 0; row--) {
+        for (int row = 1; row <= BOARD_LENGTH; row++) {
             out.print("\n");
             out.print(SET_BG_COLOR_BLACK);
-            out.print(" " + (9 - row) + " ");
+            out.print(" " + row + " ");
             for (int col = BOARD_LENGTH; col > 0; col--) {
                 setBGColor(out, chessBoard, highlightSpots, row, col);
             }
             out.print(SET_BG_COLOR_BLACK);
-            out.print(" " + (9 - row) + " ");
+            out.print(" " + row + " ");
             out.print(RESET_BG_COLOR);
         }
         drawEdge(out);
     }
 
     private void setBGColor(PrintStream out, ChessBoard chessBoard, Collection<ChessPosition> highlightSpots, int row, int col) {
-        if ((row + col) % 2 == 1) {
+        if ((row + col) % 2 == 0) {
             if (highlightSpots.contains(new ChessPosition(row, col))) {
                 out.print(SET_BG_COLOR_DARK_GREEN);
             } else {

@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Scanner;
 
+import static java.lang.Thread.sleep;
 import static ui.EscapeSequences.*;
 
 public class Client implements NotificationHandler {
@@ -32,6 +33,7 @@ public class Client implements NotificationHandler {
 
     private final WebSocketFacade ws;
     private ChessPosition highlightPos;
+    private boolean confirmQuery;
 
     public Client(String serverURL) {
         server = new ServerFacade("http://" + serverURL);
@@ -42,6 +44,7 @@ public class Client implements NotificationHandler {
         currentGameID = 1;
         ws = new WebSocketFacade("ws://" + serverURL, this);
         highlightPos = null;
+        confirmQuery = false;
 
     }
     public void run() {
@@ -51,7 +54,12 @@ public class Client implements NotificationHandler {
         var result = "";
         while (!result.equals("quit")) {
             if (inGame) {
-                chessClient.displayGame(boardColor, game, highlightPos); // if game joined, display game
+                try {
+                    sleep(250);
+                } catch (InterruptedException e) {
+                    System.out.print(e.getMessage());
+                }
+//                chessClient.displayGame(boardColor, game, highlightPos); // if game joined, display game
                 highlightPos = null; // reset highlight piece after displaying once
             }
             printPrompt();
@@ -66,8 +74,9 @@ public class Client implements NotificationHandler {
         }
     }
     private void printPrompt() {
-        System.out.print("\n" + RESET_BG_COLOR + ">>> " ); // color?
+        System.out.print("\n" + RESET_TEXT_COLOR + RESET_BG_COLOR + ">>> " ); // color?
     }
+
 
     public String eval(String line) {
         try {
@@ -83,7 +92,15 @@ public class Client implements NotificationHandler {
                 default -> help();
             };
 
-            } else if (!inGame) { // logged in
+            } else if (confirmQuery){
+                if (command.equalsIgnoreCase("y")) {
+                    ws.resign(authToken, currentGameID);
+                    confirmQuery = false;
+                    return "you resigned.";
+                }
+                return "you did not resign.";
+            }
+            else if (!inGame) { // logged in
                 return switch (command) {
                     case "logout", "l" -> logout();
                     case "quit", "q" -> "quit";
@@ -109,8 +126,16 @@ public class Client implements NotificationHandler {
                         yield (move != null) ?
                                 ws.makeMove(authToken, currentGameID, move) : help();
                     }
+                    case "resign", "r" -> {
+                        confirmQuery = true;
+                        yield "are you sure you want to resign? (y/n)";
+                    }
                     case "clear", "d" -> clear();
                     case "highlight", "h" -> highlight(params);
+                    case "redraw", "p" -> {
+                        chessClient.displayGame(boardColor, game, null);
+                        yield "redrew board";
+                    }
                     default -> help();
                 };
             }
@@ -252,8 +277,8 @@ public class Client implements NotificationHandler {
             }
             int startCol = startString[0].toCharArray()[0] - 'a' + 1;
             int startRow = startString[1].toCharArray()[0] - '0';
-            int endCol = startString[0].toCharArray()[0] - 'a' + 1;
-            int endRow = startString[1].toCharArray()[0] - '0';
+            int endCol = endString[0].toCharArray()[0] - 'a' + 1;
+            int endRow = endString[1].toCharArray()[0] - '0';
             if (startCol < 1 || startCol > 8 ||
                     startRow < 1 || startRow > 8 ||
                     endCol < 1 || endCol > 8 ||
@@ -310,6 +335,8 @@ public class Client implements NotificationHandler {
                 "leave" or "l"
                 "move" or "m" <start position (e.g. e4)> <end position> <promotion piece>
                 "highlight" or "h" <position of piece to highlight>
+                "resign" or "r"
+                "redraw" or "p"
                 "clear" or "d"
                 "help"
                 "quit" or "q"
@@ -321,20 +348,21 @@ public class Client implements NotificationHandler {
     public void notify(ServerMessage serverMessage) {
         switch (serverMessage.getServerMessageType()) {
             case NOTIFICATION -> {
-                System.out.println(SET_TEXT_COLOR_GREEN +  serverMessage.getMessage());
+                System.out.println(SET_TEXT_COLOR_GREEN);
+                System.out.println(serverMessage.getMessage());
                 printPrompt();
             }
             case ERROR -> {
-                System.out.println(SET_TEXT_COLOR_RED +  serverMessage.getMessage());
+                System.out.println(SET_TEXT_COLOR_RED);
+                System.out.println(serverMessage.getMessage());
                 printPrompt();
             }
             case LOAD_GAME -> {
                 // game is passed
                 GameData loadedGameData = serverMessage.getGame();
                 game = loadedGameData.game();
+                chessClient.displayGame(boardColor, game, null);
             }
         }
-
-
     }
 }

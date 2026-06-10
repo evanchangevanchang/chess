@@ -45,7 +45,7 @@ public class Server {
         javalin.put("/game", this::joinGameHandler);
         javalin.get("/game", this::listGameHandler);
         javalin.ws("/ws", ws -> {
-            ws.onClose(webSocketHandler);
+            ws.onConnect(webSocketHandler);
             ws.onMessage(webSocketHandler);
             ws.onClose(webSocketHandler);
         });
