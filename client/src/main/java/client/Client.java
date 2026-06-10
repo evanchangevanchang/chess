@@ -102,7 +102,7 @@ public class Client implements NotificationHandler {
                         yield "quit";
                     }
                     case "move", "m" -> {
-                        ChessMove move = parseMove(params);
+                        ChessMove move = parseMove(params); // websocket handler checks for validity
                         yield (move != null) ?
                                 ws.makeMove(authToken, currentGameID, move) : help();
                     }
@@ -184,6 +184,9 @@ public class Client implements NotificationHandler {
             inGame = true;
             boardColor = playerColor;
             currentGameID = gameID;
+
+            ws.connect(authToken, gameID);
+
             return "joined game successfully!";
             }
             catch (NumberFormatException e) {
@@ -294,9 +297,9 @@ public class Client implements NotificationHandler {
             case NOTIFICATION -> System.out.println(SET_TEXT_COLOR_GREEN +  serverMessage.getMessage());
             case ERROR -> System.out.println(SET_TEXT_COLOR_RED +  serverMessage.getMessage());
             case LOAD_GAME -> {
-                // game is passed as a string message
-                GameData gameData = new Gson().fromJson(serverMessage.getMessage(), GameData.class);
-                game = gameData.game();
+                // game is passed
+                GameData loadedGameData = serverMessage.getGame();
+                game = loadedGameData.game();
             }
         }
 

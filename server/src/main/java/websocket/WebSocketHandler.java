@@ -2,6 +2,8 @@ package websocket;
 
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.*;
 import io.javalin.websocket.*;
@@ -35,79 +37,121 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         try {
         switch (userGameCommand.getCommandType()) {
             case CONNECT -> connect(userGameCommand, wsMessageContext.session);
-            case MAKE_MOVE -> makeMove(userGameCommand, wsMessageContext.session);
+            case MAKE_MOVE -> makeMove(userGameCommand, wsMessageContext.session, userGameCommand.getMove());
             case LEAVE -> leave(userGameCommand, wsMessageContext.session);
             case RESIGN -> resign(userGameCommand, wsMessageContext.session);
         }
-        } catch (IOException | DataAccessException e) { // figure out a better way?
-            e.printStackTrace();
+        } catch (Exception e) {
+            String msg = e.getMessage();
+            ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+            serverMessage.setErrorMessage(msg);
+            try {
+                connections.send(wsMessageContext.session, serverMessage);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
     }
 
-    private void connect(UserGameCommand command, Session session) throws IOException{
+    private void connect(UserGameCommand command, Session session) throws IOException, DataAccessException{
+        GameDAO gameDAO = new SQLGameDAO();
+        int gameID = command.getGameID();
+        GameData gameData = gameDAO.getGame(gameID);
+        if (gameData == null) {
+            throw new IOException("no gameData");
+        }
+    try {
         connections.add(session);
+    } catch (IOException e) { // return if already in connected
+        throw new IOException("already connected");
+    }
         AuthData result = getAuthData(command, session);
         if (result == null) {
             throw new IOException("Data Access failed ");
         }
-        String msg = result.username() + " has connected";
-        var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-        notification.setMessage(msg);
-        connections.broadcast(session, notification);
+        String username = result.username();
+        String msg = username + " has connected";
+        sendNotif(msg, session);
 
-
+        var loadGame = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
+        loadGame.setGame(gameData);
+        connections.send(session, loadGame); // only connecting client loads
     }
-    private void makeMove(UserGameCommand command, Session session) throws IOException, DataAccessException {
+    private void makeMove(UserGameCommand command, Session session, ChessMove move) throws IOException, DataAccessException {
         GameDAO gameDAO = new SQLGameDAO();
         int gameID = command.getGameID();
         GameData gameData = gameDAO.getGame(gameID);
         ChessGame game = gameData.game(); // also checks if gameData is null
-
         AuthData authData = getAuthData(command, session);
 
         // check if move is valid
         if (gameData.game().resigned) {
-            // invalid move error
-            return;
+            throw new IOException("a player has already resigned");
         }
-        String playerTeam = getPlayerTeam(authData, gameData);
+        ChessGame.TeamColor playerTeam = getPlayerTeam(authData, gameData);
         // check if player is an observer
-        if (playerTeam.equals("OBSERVER")) {
-            // observer dont play error
-            return;
-        } else if (playerTeam.equals("WHITE") && (game.getTeamTurn() != ChessGame.TeamColor.WHITE) ||
-            playerTeam.equals("BLACK") && (game.getTeamTurn() != ChessGame.TeamColor.BLACK)) {
-            // not your turn error
+        if (playerTeam == null) {
+            throw new IOException("observer cannot play");
+        } else if (playerTeam.equals(ChessGame.TeamColor.WHITE) && (game.getTeamTurn() != ChessGame.TeamColor.WHITE) ||
+            playerTeam.equals(ChessGame.TeamColor.BLACK) && (game.getTeamTurn() != ChessGame.TeamColor.BLACK)) {
+            throw new IOException("not your turn");
+        }
+        // update game
+        try {
+        gameData.game().makeMove(move);
+        } catch (InvalidMoveException e) {
+            throw new IOException("invalid move");
+        }
+        // broadcast load game to all clients
+        sendLoad(gameData);
+
+        // notification what move was made
+        String username = authData.username();
+        String moveNotif = username + "has made move: " + move;
+        sendNotif(moveNotif, session);
+
+        // check for check, checkmate etc. send a notification
+        if (game.isInCheckmate(playerTeam)) {
+            String checkNotif = username + " is in checkmate";
+            sendNotif(checkNotif, null);
+            game.resigned = true;
             return;
         }
-        command.getMove();
-        // update game
-        // broadcast load game to all clients
-        // check for check, checkmate etc. send a notification
-
+        if (game.isInStalemate(playerTeam)) {
+            String checkNotif = username + " is in stalemate";
+            sendNotif(checkNotif, null);
+            game.resigned = true;
+            return;
+        }
+        if (game.isInCheck(playerTeam)) {
+            String checkNotif = username + " is in check";
+            sendNotif(checkNotif, null);
+        }
     }
     private void leave(UserGameCommand command, Session session) throws IOException, DataAccessException {
         // remove root client
         AuthData authData = getAuthData(command, session);
-        connections.remove(session);
+        try {
+            connections.remove(session);
+        } catch (IOException e) {
+            return; // return if already left
+        }
         // update game in database
         GameDAO gameDAO = new SQLGameDAO();
         int gameID = command.getGameID();
         GameData gameData = gameDAO.getGame(gameID);
-        if (!gameData.whiteUsername().isEmpty() &&
+        if (!(gameData.whiteUsername() == null) &&
                 gameData.whiteUsername().equals(authData.username())) {
             gameDAO.updateGame(gameID, new GameData(gameID, null,
                     gameData.blackUsername(), gameData.gameName(), gameData.game()));
-        } else if (!gameData.blackUsername().isEmpty() &&
+        } else if (!(gameData.blackUsername() == null) &&
                 gameData.blackUsername().equals(authData.username())) {
             gameDAO.updateGame(gameID, new GameData(gameID, gameData.whiteUsername(),
                     null, gameData.gameName(), gameData.game()));
         }
-        String msg = authData.username() + " has disconnected";
         // send notification to all other clients that root client has left
-        var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-        notification.setMessage(msg);
-        connections.broadcast(session, notification);
+        String msg = authData.username() + " has disconnected";
+        sendNotif(msg, session);
     }
     private void resign(UserGameCommand command, Session session) throws IOException, DataAccessException {
         AuthData authData = getAuthData(command, session);
@@ -138,12 +182,23 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
-    private String getPlayerTeam(AuthData authData, GameData gameData) {
+    private ChessGame.TeamColor getPlayerTeam(AuthData authData, GameData gameData) {
         if (gameData.whiteUsername() != null && gameData.whiteUsername().equals(authData.username())) {
-            return "WHITE";
+            return ChessGame.TeamColor.WHITE;
         } else if (gameData.blackUsername() != null && gameData.blackUsername().equals(authData.username())) {
-            return "BLACK";
+            return ChessGame.TeamColor.BLACK;
         }
-        return "OBSERVER";
+        return null;
+    }
+
+    private void sendNotif(String msg, Session excludeSession) throws IOException {
+        var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+        notification.setMessage(msg);
+        connections.broadcast(excludeSession, notification);
+    }
+    private void sendLoad(GameData gameData) throws IOException {
+        var loadMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
+        loadMessage.setGame(gameData);
+        connections.broadcast(null, loadMessage); // exclude session always null
     }
 }
