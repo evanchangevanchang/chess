@@ -14,7 +14,7 @@ public class ConnectionManager {
     public void add(int gameID, Session session) throws IOException {
         Set<Session> connectionSet = connections.computeIfAbsent(
                 gameID,
-                _ -> ConcurrentHashMap.newKeySet()
+                id -> ConcurrentHashMap.newKeySet()
         );
         if (!connectionSet.add(session)) {
             throw new IOException("already connected");
