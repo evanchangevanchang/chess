@@ -61,7 +61,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             throw new IOException("no gameData");
         }
     try {
-        connections.add(session);
+        connections.add(gameID, session);
     } catch (IOException e) { // return if already in connected
         throw new IOException("already connected");
     }
@@ -71,7 +71,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
         String username = result.username();
         String msg = username + " has connected";
-        sendNotif(msg, session);
+        sendNotif(gameID, msg, session);
 
         var loadGame = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
         loadGame.setGame(gameData);
@@ -103,40 +103,48 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             throw new IOException("invalid move");
         }
         // broadcast load game to all clients
-        sendLoad(gameData);
+        sendLoad(gameID, gameData);
 
         // notification what move was made
         String username = authData.username();
         String moveNotif = username + "has made move: " + move;
-        sendNotif(moveNotif, session);
+        sendNotif(gameID, moveNotif, session);
 
         // check for check, checkmate etc. send a notification
         if (game.isInCheckmate(playerTeam)) {
             String checkNotif = username + " is in checkmate";
-            sendNotif(checkNotif, null);
+            sendNotif(gameID, checkNotif, null);
             game.resigned = true;
             return;
         }
         if (game.isInStalemate(playerTeam)) {
             String checkNotif = username + " is in stalemate";
-            sendNotif(checkNotif, null);
+            sendNotif(gameID, checkNotif, null);
             game.resigned = true;
             return;
         }
         if (game.isInCheck(playerTeam)) {
             String checkNotif = username + " is in check";
-            sendNotif(checkNotif, null);
+            sendNotif(gameID, checkNotif, null);
         }
     }
     private void leave(UserGameCommand command, Session session) throws IOException, DataAccessException {
         // remove root client
         AuthData authData = getAuthData(command, session);
         try {
-            connections.remove(session);
+            connections.remove(command.getGameID(), session);
         } catch (IOException e) {
             return; // return if already left
         }
         // update game in database
+        int gameID = updateGame(command, authData);
+        // send notification to all other clients that root client has left
+        String msg = authData.username() + " has disconnected";
+        sendNotif(gameID, msg, session);
+    }
+
+    // clean up leave game method
+    private static int updateGame(UserGameCommand command, AuthData authData) throws DataAccessException {
         GameDAO gameDAO = new SQLGameDAO();
         int gameID = command.getGameID();
         GameData gameData = gameDAO.getGame(gameID);
@@ -149,10 +157,9 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             gameDAO.updateGame(gameID, new GameData(gameID, gameData.whiteUsername(),
                     null, gameData.gameName(), gameData.game()));
         }
-        // send notification to all other clients that root client has left
-        String msg = authData.username() + " has disconnected";
-        sendNotif(msg, session);
+        return gameID;
     }
+
     private void resign(UserGameCommand command, Session session) throws IOException, DataAccessException {
         AuthData authData = getAuthData(command, session);
         GameDAO gameDAO = new SQLGameDAO();
@@ -162,12 +169,17 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             throw new DataAccessException("Game Data not found");
         }
         if (gameData.game().resigned) {
-            String msg = "already resigned";
-            return; // figure out what to do here
+            throw new IOException("already resigned");
+        }
+        if (getPlayerTeam(authData, gameData) == null) {
+            throw new IOException("observer cannot resign");
         }
         // update game where resigned is set to true
         gameData.game().resigned = true;
         gameDAO.updateGame(command.getGameID(), gameData);
+
+        String msg = authData.username() +  " has resigned";
+        sendNotif(gameID, msg, null);
     }
 
     private AuthData getAuthData(UserGameCommand command, Session session) throws IOException{
@@ -191,14 +203,14 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         return null;
     }
 
-    private void sendNotif(String msg, Session excludeSession) throws IOException {
+    private void sendNotif(int gameID, String msg, Session excludeSession) throws IOException {
         var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
         notification.setMessage(msg);
-        connections.broadcast(excludeSession, notification);
+        connections.broadcast(gameID, excludeSession, notification);
     }
-    private void sendLoad(GameData gameData) throws IOException {
+    private void sendLoad(int gameID, GameData gameData) throws IOException {
         var loadMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
         loadMessage.setGame(gameData);
-        connections.broadcast(null, loadMessage); // exclude session always null
+        connections.broadcast(gameID, null, loadMessage); // exclude session always null
     }
 }
