@@ -6,7 +6,6 @@ import chess.ChessPiece;
 import chess.ChessPosition;
 import client.websocket.NotificationHandler;
 import client.websocket.WebSocketFacade;
-import com.google.gson.Gson;
 import model.GameData;
 import request.*;
 import result.ListGameResult;
@@ -32,15 +31,18 @@ public class Client implements NotificationHandler {
     private int currentGameID; // save gameID to display chosen game
 
     private final WebSocketFacade ws;
+    private ChessPosition highlightPos;
 
     public Client(String serverURL) {
-        server = new ServerFacade(serverURL);
+        server = new ServerFacade("http://" + serverURL);
         authToken = null;
         inGame = false;
         chessClient = new ChessClient();
         game = new ChessGame(); // just for set up
         currentGameID = 1;
-        ws = new WebSocketFacade(serverURL, this);
+        ws = new WebSocketFacade("ws://" + serverURL, this);
+        highlightPos = null;
+
     }
     public void run() {
         // prompt here
@@ -49,7 +51,8 @@ public class Client implements NotificationHandler {
         var result = "";
         while (!result.equals("quit")) {
             if (inGame) {
-                chessClient.displayGame(boardColor, game); // if game joined, display game
+                chessClient.displayGame(boardColor, game, highlightPos); // if game joined, display game
+                highlightPos = null; // reset highlight piece after displaying once
             }
             printPrompt();
             String line = scanner.nextLine();
@@ -107,6 +110,7 @@ public class Client implements NotificationHandler {
                                 ws.makeMove(authToken, currentGameID, move) : help();
                     }
                     case "clear", "d" -> clear();
+                    case "highlight", "h" -> highlight(params);
                     default -> help();
                 };
             }
@@ -218,6 +222,27 @@ public class Client implements NotificationHandler {
         return help();
     }
 
+    private String highlight(String... params) {
+        if (params.length == 1) {
+            String[] stringCoords = params[0].split("");
+            int col = stringCoords[0].toCharArray()[0] - 'a' + 1;
+            int row = stringCoords[1].toCharArray()[0] - '0';
+            if (col < 1 || col > 8 ||
+                    row < 1 || row > 8) {
+                return "invalid coordinate";
+            }
+            var selectedPos = new ChessPosition(row, col);
+            var selectedPiece = game.getBoard().getPiece(selectedPos);
+            if (selectedPiece == null) {
+                return "no piece selected";
+            } else {
+                highlightPos = selectedPos;
+                return "selected: " + params[0];
+            }
+        }
+        return "test string";
+    }
+
     private ChessMove parseMove(String... params) {
         if (params.length == 2 || params.length == 3) {
             String[] startString = params[0].split("");
@@ -283,10 +308,11 @@ public class Client implements NotificationHandler {
                     """;
         } return """
                 "leave" or "l"
-                "move", "m" <start position (e.g. e4)> <end position> <promotion piece>
-                "clear", "d"
+                "move" or "m" <start position (e.g. e4)> <end position> <promotion piece>
+                "highlight" or "h" <position of piece to highlight>
+                "clear" or "d"
                 "help"
-                "quit", "q"
+                "quit" or "q"
                 """;
     }
 
@@ -294,8 +320,14 @@ public class Client implements NotificationHandler {
     @Override
     public void notify(ServerMessage serverMessage) {
         switch (serverMessage.getServerMessageType()) {
-            case NOTIFICATION -> System.out.println(SET_TEXT_COLOR_GREEN +  serverMessage.getMessage());
-            case ERROR -> System.out.println(SET_TEXT_COLOR_RED +  serverMessage.getMessage());
+            case NOTIFICATION -> {
+                System.out.println(SET_TEXT_COLOR_GREEN +  serverMessage.getMessage());
+                printPrompt();
+            }
+            case ERROR -> {
+                System.out.println(SET_TEXT_COLOR_RED +  serverMessage.getMessage());
+                printPrompt();
+            }
             case LOAD_GAME -> {
                 // game is passed
                 GameData loadedGameData = serverMessage.getGame();

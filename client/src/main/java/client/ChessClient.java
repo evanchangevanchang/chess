@@ -1,12 +1,10 @@
 package client;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessPiece;
-
-import chess.ChessPosition;
+import chess.*;
 
 import java.io.PrintStream;
+import java.util.Collection;
+import java.util.HashSet;
 
 import static chess.ChessGame.TeamColor.*;
 import static ui.EscapeSequences.*;
@@ -19,30 +17,33 @@ public class ChessClient {
         this.direction = true;
     }
 
-    public void displayGame(ChessGame.TeamColor playerColor, ChessGame chessGame) {
+    public void displayGame(ChessGame.TeamColor playerColor, ChessGame chessGame, ChessPosition highlightPos) {
         var out = new PrintStream(System.out);
         direction = playerColor == WHITE;
         ChessBoard board = chessGame.getBoard();
+        Collection<ChessPosition> highlightSpots = new HashSet<>();
+        if (highlightPos != null) {
+            var moves = board.getPiece(highlightPos).pieceMoves(board, highlightPos);
+            for (ChessMove move : moves) {
+                var pos = move.getEndPosition();
+                highlightSpots.add(new ChessPosition(9 - pos.getRow(), pos.getColumn()));
+            }
+        }
         if (direction) {
-            drawWhiteBoard(out, board);
+            drawWhiteBoard(out, board, highlightSpots);
         } else {
-            drawBlackBoard(out, board);
+            drawBlackBoard(out, board, highlightSpots);
         }
     }
 
-    private void drawWhiteBoard(PrintStream out, ChessBoard chessBoard) {
+    private void drawWhiteBoard(PrintStream out, ChessBoard chessBoard, Collection<ChessPosition> highlightSpots) {
         drawEdge(out);
         for (int row = 1; row < BOARD_LENGTH + 1; row++) {
             out.print("\n");
             out.print(SET_BG_COLOR_BLACK);
             out.print(" " + (9 - row) + " ");
             for (int col = 1; col < BOARD_LENGTH + 1; col++) {
-                if ((row + col) % 2 == 1) {
-                    out.print(SET_BG_COLOR_DARK_GREY);
-                } else {
-                    out.print(SET_BG_COLOR_LIGHT_GREY);
-                }
-                drawPiece(out, chessBoard, row, col);
+                setBGColor(out, chessBoard, highlightSpots, row, col);
             }
             out.print(SET_BG_COLOR_BLACK);
             out.print(" " + (9 - row) + " ");
@@ -50,25 +51,37 @@ public class ChessClient {
         }
         drawEdge(out);
     }
-    private void drawBlackBoard(PrintStream out, ChessBoard chessBoard) {
+    private void drawBlackBoard(PrintStream out, ChessBoard chessBoard, Collection<ChessPosition> highlightSpots) {
         drawEdge(out);
         for (int row = BOARD_LENGTH; row > 0; row--) {
             out.print("\n");
             out.print(SET_BG_COLOR_BLACK);
             out.print(" " + (9 - row) + " ");
             for (int col = BOARD_LENGTH; col > 0; col--) {
-                if ((row + col) % 2 == 1) {
-                    out.print(SET_BG_COLOR_DARK_GREY);
-                } else {
-                    out.print(SET_BG_COLOR_LIGHT_GREY);
-                }
-                drawPiece(out, chessBoard, row, col);
+                setBGColor(out, chessBoard, highlightSpots, row, col);
             }
             out.print(SET_BG_COLOR_BLACK);
             out.print(" " + (9 - row) + " ");
             out.print(RESET_BG_COLOR);
         }
         drawEdge(out);
+    }
+
+    private void setBGColor(PrintStream out, ChessBoard chessBoard, Collection<ChessPosition> highlightSpots, int row, int col) {
+        if ((row + col) % 2 == 1) {
+            if (highlightSpots.contains(new ChessPosition(row, col))) {
+                out.print(SET_BG_COLOR_DARK_GREEN);
+            } else {
+                out.print(SET_BG_COLOR_DARK_GREY);
+            }
+        } else {
+            if (highlightSpots.contains(new ChessPosition(row, col))) {
+                out.print(SET_BG_COLOR_GREEN);
+            } else {
+                out.print(SET_BG_COLOR_LIGHT_GREY);
+            }
+        }
+        drawPiece(out, chessBoard, row, col);
     }
 
     private void drawEdge(PrintStream out) {
