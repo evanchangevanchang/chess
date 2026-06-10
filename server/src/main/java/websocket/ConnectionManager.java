@@ -5,6 +5,7 @@ import org.eclipse.jetty.websocket.api.Session;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -12,12 +13,19 @@ public class ConnectionManager {
     public final ConcurrentHashMap<Integer, Set<Session>> connections = new ConcurrentHashMap<>();
 
     public void add(int gameID, Session session) throws IOException {
-        if (!connections.get(gameID).add(session)){
+        Set<Session> connectionSet = connections.computeIfAbsent(
+                gameID,
+                _ -> ConcurrentHashMap.newKeySet()
+        );
+        if (!connectionSet.add(session)) {
             throw new IOException("already connected");
         }
     }
 
     public void remove(int gameID, Session session) throws IOException {
+        if (!connections.containsKey(gameID)) {
+            throw new IOException("bad gameID");
+        }
         if (!connections.get(gameID).remove(session)) {
             throw new IOException("no session to remove");
         }
