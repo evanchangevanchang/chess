@@ -99,6 +99,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         // update game
         try {
         gameData.game().makeMove(move);
+        gameDAO.updateGame(gameID, gameData);
         } catch (InvalidMoveException e) {
             throw new IOException("invalid move");
         }
@@ -111,19 +112,23 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         sendNotif(gameID, moveNotif, session);
 
         // check for check, checkmate etc. send a notification
-        if (game.isInCheckmate(playerTeam)) {
+
+        ChessGame.TeamColor oppositeColor = (playerTeam == ChessGame.TeamColor.WHITE) ? ChessGame.TeamColor.BLACK :
+                ChessGame.TeamColor.WHITE;
+
+        if (game.isInCheckmate(oppositeColor)) {
             String checkNotif = username + " is in checkmate";
             sendNotif(gameID, checkNotif, null);
             game.resigned = true;
             return;
         }
-        if (game.isInStalemate(playerTeam)) {
+        if (game.isInStalemate(oppositeColor)) {
             String checkNotif = username + " is in stalemate";
             sendNotif(gameID, checkNotif, null);
             game.resigned = true;
             return;
         }
-        if (game.isInCheck(playerTeam)) {
+        if (game.isInCheck(oppositeColor)) {
             String checkNotif = username + " is in check";
             sendNotif(gameID, checkNotif, null);
         }
