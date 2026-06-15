@@ -37,7 +37,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         try {
         switch (userGameCommand.getCommandType()) {
             case CONNECT -> connect(userGameCommand, wsMessageContext.session);
-            case MAKE_MOVE -> makeMove(userGameCommand, wsMessageContext.session, userGameCommand.getMove());
+            case MAKE_MOVE -> makeMove(userGameCommand, wsMessageContext.session);
             case LEAVE -> leave(userGameCommand, wsMessageContext.session);
             case RESIGN -> resign(userGameCommand, wsMessageContext.session);
         }
@@ -70,14 +70,16 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             throw new IOException("Data Access failed ");
         }
         String username = result.username();
-        String msg = username + " has connected";
+        AuthData authData = getAuthData(command, session);
+        String team = (command.isObserver()) ? "an observer" : (getPlayerTeam(authData, gameData) == ChessGame.TeamColor.WHITE) ? "white" : "black";
+        String msg = username + " has connected as " + team;
         sendNotif(gameID, msg, session);
 
         var loadGame = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
         loadGame.setGame(gameData);
         connections.send(session, loadGame); // only connecting client loads
     }
-    private void makeMove(UserGameCommand command, Session session, ChessMove move) throws IOException, DataAccessException {
+    private void makeMove(UserGameCommand command, Session session) throws IOException, DataAccessException {
         GameDAO gameDAO = new SQLGameDAO();
         int gameID = command.getGameID();
         GameData gameData = gameDAO.getGame(gameID);
@@ -97,6 +99,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             throw new IOException("not your turn");
         }
         // update game
+        var move = command.getMove();
         try {
         gameData.game().makeMove(move);
         gameDAO.updateGame(gameID, gameData);

@@ -100,7 +100,6 @@ public class ChessGame {
             if (!isInCheck(movingColor)) {
                 validMoves.add(move);
             }
-
             board = save;
         }
         return validMoves;

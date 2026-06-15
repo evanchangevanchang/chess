@@ -98,6 +98,7 @@ public class Client implements NotificationHandler {
                     confirmQuery = false;
                     return "you resigned.";
                 }
+                confirmQuery = false;
                 return "you did not resign.";
             }
             else if (!inGame) { // logged in
@@ -123,8 +124,11 @@ public class Client implements NotificationHandler {
                     }
                     case "move", "m" -> {
                         ChessMove move = parseMove(params); // websocket handler checks for validity
-                        yield (move != null) ?
-                                ws.makeMove(authToken, currentGameID, move) : help();
+                        if (move != null) {
+                            ws.makeMove(authToken, currentGameID, move);
+                            yield "";
+                        }
+                        yield help();
                     }
                     case "resign", "r" -> {
                         confirmQuery = true;
@@ -214,7 +218,7 @@ public class Client implements NotificationHandler {
             boardColor = playerColor;
             currentGameID = gameID;
 
-            ws.connect(authToken, gameID);
+            ws.connect(authToken, gameID, false);
 
             return "joined game successfully!";
             }
@@ -237,6 +241,7 @@ public class Client implements NotificationHandler {
                 inGame = true;
                 boardColor = ChessGame.TeamColor.WHITE;
                 currentGameID = gameID;
+                ws.connect(authToken, gameID, true);
                 return "observing game " + gameID;
             } catch (NumberFormatException e) {
                 return "not a number";
@@ -262,7 +267,8 @@ public class Client implements NotificationHandler {
                 return "no piece selected";
             } else {
                 highlightPos = selectedPos;
-                return "selected: " + params[0];
+                chessClient.displayGame(boardColor, game, highlightPos);
+                return "\nselected: " + params[0];
             }
         }
         return "test string";
@@ -354,7 +360,7 @@ public class Client implements NotificationHandler {
             }
             case ERROR -> {
                 System.out.println(SET_TEXT_COLOR_RED);
-                System.out.println(serverMessage.getMessage());
+                System.out.println(serverMessage.getErrorMessage());
                 printPrompt();
             }
             case LOAD_GAME -> {

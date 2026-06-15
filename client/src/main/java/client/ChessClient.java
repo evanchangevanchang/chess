@@ -23,7 +23,7 @@ public class ChessClient {
         ChessBoard board = chessGame.getBoard();
         Collection<ChessPosition> highlightSpots = new HashSet<>();
         if (highlightPos != null) {
-            var moves = board.getPiece(highlightPos).pieceMoves(board, highlightPos);
+            var moves = chessGame.validMoves(highlightPos);
             for (ChessMove move : moves) {
                 var pos = move.getEndPosition();
                 highlightSpots.add(new ChessPosition(pos.getRow(), pos.getColumn()));

@@ -38,20 +38,20 @@ public class WebSocketFacade extends Endpoint {
     public void onOpen(Session session, EndpointConfig endpointConfig) {
     }
 
-    public void connect(String authToken, Integer gameID) throws ResponseException {
+    public void connect(String authToken, Integer gameID, boolean observer) throws ResponseException {
         try {
             var action = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID);
+            action.setObserver(observer);
             this.session.getBasicRemote().sendText(new Gson().toJson(action));
         } catch (IOException e) {
             throw new ResponseException(e.getMessage());
         }
     }
-    public String makeMove(String authToken, Integer gameID, ChessMove move) throws ResponseException {
+    public void makeMove(String authToken, Integer gameID, ChessMove move) throws ResponseException {
         try {
             var action = new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, gameID);
             action.setMove(move);
             this.session.getBasicRemote().sendText(new Gson().toJson(action));
-            return "made move: " + move.toString(); // maybe change depends on how it shows up
         } catch (IOException e) {
             throw new ResponseException(e.getMessage());
         }

@@ -46,6 +46,16 @@ public class UserGameCommand {
         return gameID;
     }
 
+    public boolean isObserver() {
+        return observer;
+    }
+
+    public void setObserver(boolean observer) {
+        this.observer = observer;
+    }
+
+    public boolean observer;
+
     public ChessMove getMove() {
         return move;
     }
